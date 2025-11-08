@@ -76,7 +76,7 @@ const Login = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <img src={logo} alt="BuildFlow" className="h-12 w-auto" />
-            <span className="text-3xl font-bold text-primary">BuildFlow</span>
+            <span className="text-3xl font-bold text-primary">Yoonu-Tabax</span>
           </div>
           <p className="text-muted-foreground">
             Gestion intelligente de projets de construction
@@ -143,7 +143,7 @@ const Login = () => {
               <CardHeader>
                 <CardTitle>Créer un compte</CardTitle>
                 <CardDescription>
-                  Rejoignez BuildFlow pour gérer vos projets
+                  Rejoignez Yoonu-Tabax pour gérer vos projets
                 </CardDescription>
               </CardHeader>
               <CardContent>
