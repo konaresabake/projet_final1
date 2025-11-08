@@ -101,8 +101,8 @@ CORS_ALLOW_CREDENTIALS = True
 frontend_origin = os.environ.get('FRONTEND_ORIGIN', 'http://localhost:5173')
 cors_allowed_origins = [
     frontend_origin,
-    'http://localhost:8080',
-    'http://127.0.0.1:8080',
+    'https://yoonu-tabax-frontende.onrender.com',
+    'https://yoonu-tabax-frontend.onrender.com',
 ]
 
 # Add common Render frontend URLs if in production
