@@ -991,6 +991,33 @@ class ContactMessageViewSet(BaseViewSet):
             logger.error(f'Error in ContactMessageViewSet.get_queryset: {str(e)}')
             return ContactMessage.objects.none()
     
+    def list(self, request, *args, **kwargs):
+        """Override list pour gérer les erreurs et assurer un retour correct"""
+        try:
+            queryset = self.get_queryset()
+            # Logger pour debug
+            logger.info(f'ContactMessageViewSet.list: Found {queryset.count()} messages')
+            
+            serializer = self.get_serializer(queryset, many=True)
+            data = serializer.data
+            
+            # Logger pour vérifier les données sérialisées
+            logger.info(f'ContactMessageViewSet.list: Serialized {len(data)} messages')
+            
+            # Retourner directement un tableau (pas de pagination)
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f'Error in ContactMessageViewSet.list: {str(e)}')
+            import traceback
+            logger.error(traceback.format_exc())
+            # Retourner une liste vide plutôt qu'une erreur 500
+            return Response([], status=status.HTTP_200_OK)
+    
     def perform_create(self, serializer):
         """Sauvegarde le message avec is_read=False par défaut"""
-        serializer.save(is_read=False)
+        try:
+            serializer.save(is_read=False)
+            logger.info(f'Contact message created: {serializer.instance.id}')
+        except Exception as e:
+            logger.error(f'Error in ContactMessageViewSet.perform_create: {str(e)}')
+            raise

@@ -1,0 +1,54 @@
+services:
+  # Backend Django
+  - type: web
+    name: yoonu-tabax-backend
+    env: python
+    region: frankfurt
+    plan: starter
+    buildCommand: ./backend/build.sh
+    startCommand: cd backend && gunicorn buildflow_api.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: 0
+      - key: DJANGO_ALLOWED_HOSTS
+        value: yoonu-tabax-backend.onrender.com
+      - key: FRONTEND_ORIGIN
+        fromService:
+          type: static
+          name: yoonu-tabax-frontend
+          property: url
+      - key: DATABASE_URL
+        fromDatabase:
+          name: yoonu-tabax-db
+          property: connectionString
+      - key: DJANGO_SETTINGS_MODULE
+        value: buildflow_api.settings
+
+  # Frontend React (Site Statique)
+  - type: static
+    name: yoonu-tabax-frontend
+    region: frankfurt
+    plan: starter
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: NODE_VERSION
+        value: 18.18.0
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: yoonu-tabax-backend
+          property: url
+
+  # Database PostgreSQL
+  - type: pspg
+    name: yoonu-tabax-db
+    plan: starter
+    region: frankfurt
+    databaseName: yoonu_tabax
+    user: yoonu_tabax_user
+

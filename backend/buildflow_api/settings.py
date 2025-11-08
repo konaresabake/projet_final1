@@ -23,6 +23,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -51,11 +52,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'buildflow_api.wsgi.application'
 
+# Database configuration
+# Support PostgreSQL for production (Render) and SQLite for development
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = []
@@ -66,7 +72,20 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = []
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
 
 
 REST_FRAMEWORK = {
@@ -77,13 +96,24 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = list(
-    {
-        os.environ.get('FRONTEND_ORIGIN', 'http://localhost:5173'),
-        'http://localhost:8080',
-        'http://127.0.0.1:8080',
-    }
-)
+
+# CORS configuration - Allow frontend origins
+frontend_origin = os.environ.get('FRONTEND_ORIGIN', 'http://localhost:5173')
+cors_allowed_origins = [
+    frontend_origin,
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
+]
+
+# Add common Render frontend URLs if in production
+if not DEBUG:
+    # Add the frontend origin from environment if provided
+    render_frontend = os.environ.get('FRONTEND_ORIGIN', '')
+    if render_frontend and render_frontend not in cors_allowed_origins:
+        cors_allowed_origins.append(render_frontend)
+
+CORS_ALLOWED_ORIGINS = cors_allowed_origins
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all origins in development
 
 from corsheaders.defaults import default_headers
 CORS_ALLOW_HEADERS = list(default_headers) + [
