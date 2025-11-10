@@ -84,8 +84,8 @@ const Dashboard = () => {
             />
             <StatCard
               title="Budget total"
-              value={`${stats.totalBudget}M€`}
-              description={`${stats.budgetUsed}M€ consommés (${stats.budgetPercentage}%)`}
+              value={`${stats.totalBudget}MXOF`}
+              description={`${stats.budgetUsed}MXOF consommés (${stats.budgetPercentage}%)`}
               icon={Euro}
             />
             <StatCard
