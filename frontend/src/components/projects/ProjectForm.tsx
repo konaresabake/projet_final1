@@ -162,7 +162,7 @@ export const ProjectForm = ({ onSubmit, onCancel, initialData }: ProjectFormProp
           id="location"
           value={formData.location}
           onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-          placeholder="Paris, Île-de-France"
+          placeholder=""
         />
         {errors.location && <p className="text-sm text-destructive">{errors.location}</p>}
       </div>
@@ -173,7 +173,7 @@ export const ProjectForm = ({ onSubmit, onCancel, initialData }: ProjectFormProp
           id="manager"
           value={formData.manager}
           onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
-          placeholder="Sophie Martin"
+          placeholder=""
         />
         {errors.manager && <p className="text-sm text-destructive">{errors.manager}</p>}
       </div>
