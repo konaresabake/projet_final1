@@ -182,13 +182,13 @@ class BudgetAdmin(admin.ModelAdmin):
         color = 'green' if ecart >= 0 else 'red'
         ecart_formatted = f"{ecart:.2f}"
         return format_html(
-            '<span style="color: {}; font-weight: bold;">{} €</span>',
+            '<span style="color: {}; font-weight: bold;">{} XOF</span>',
             color, ecart_formatted
         )
     ecart_display.short_description = 'Écart'
     
     def ecart_calcule(self, obj):
-        return f"{float(obj.montant_prev) - float(obj.montant_depense):.2f} €"
+        return f"{float(obj.montant_prev) - float(obj.montant_depense):.2f} XOF"
     ecart_calcule.short_description = 'Écart calculé'
 
 
@@ -263,7 +263,7 @@ class RessourceAdmin(admin.ModelAdmin):
     def cout_total_display(self, obj):
         total = float(obj.quantite * obj.cout_unitaire)
         total_formatted = f"{total:.2f}"
-        return format_html('<strong>{} €</strong>', total_formatted)
+        return format_html('<strong>{} XOF</strong>', total_formatted)
     cout_total_display.short_description = 'Coût total'
 
 

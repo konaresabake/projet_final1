@@ -26,3 +26,5 @@ class Command(BaseCommand):
 			self.stderr.write(self.style.ERROR(f"Failed to create superuser: {str(e)}"))
 
 
+
+

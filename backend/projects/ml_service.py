@@ -708,7 +708,7 @@ class MLPredictionService:
                     recommendations.append({
                         'type': 'budget',
                         'priority': 'high',
-                        'message': f'Dépassement budgétaire estimé à {estimated_overrun:,.2f} €',
+                        'message': f'Dépassement budgétaire estimé à {estimated_overrun:,.2f} XOF',
                         'action': 'Réviser les coûts et identifier les économies possibles',
                         'estimated_overrun': estimated_overrun
                     })
@@ -724,7 +724,7 @@ class MLPredictionService:
                     recommendations.append({
                         'type': 'budget',
                         'priority': 'medium',
-                        'message': f'Risque modéré de dépassement estimé à {estimated_overrun:,.2f} €',
+                        'message': f'Risque modéré de dépassement estimé à {estimated_overrun:,.2f} XOF',
                         'action': 'Surveiller les dépenses et contrôler les coûts',
                         'estimated_overrun': estimated_overrun
                     })
@@ -755,7 +755,7 @@ class MLPredictionService:
                                     recommendations.append({
                                         'type': 'historical',
                                         'priority': 'medium',
-                                        'message': f'Dépassement budgétaire moyen de {depassement_moyen:,.2f} € sur projets similaires',
+                                        'message': f'Dépassement budgétaire moyen de {depassement_moyen:,.2f} XOF sur projets similaires',
                                         'action': 'Allouer une marge de sécurité supplémentaire',
                                         'based_on': len(projets_similaires)
                                     })
