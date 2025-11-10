@@ -49,7 +49,16 @@ const Lots = () => {
                 {lots.length} lot{lots.length > 1 ? 's' : ''}
               </p>
             </div>
-            <Button onClick={() => setIsDialogOpen(true)} size="lg">
+            <Button 
+              onClick={() => {
+                try {
+                  setIsDialogOpen(true);
+                } catch (error) {
+                  console.error('Error opening dialog:', error);
+                }
+              }} 
+              size="lg"
+            >
               <Plus className="mr-2 h-5 w-5" />
               Nouveau Lot
             </Button>
@@ -104,7 +113,15 @@ const Lots = () => {
           {!loading && lots.length === 0 && (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg mb-4">Aucun lot trouvé</p>
-              <Button onClick={() => setIsDialogOpen(true)}>
+              <Button 
+                onClick={() => {
+                  try {
+                    setIsDialogOpen(true);
+                  } catch (error) {
+                    console.error('Error opening dialog:', error);
+                  }
+                }}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Créer votre premier lot
               </Button>

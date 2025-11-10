@@ -37,9 +37,38 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, onClick, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    
+    const handleClick = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+      if (disabled) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      
+      try {
+        if (onClick && typeof onClick === 'function') {
+          onClick(e);
+        }
+      } catch (error) {
+        console.error('Button onClick error:', error);
+        // Ne pas bloquer l'événement même en cas d'erreur
+      }
+    }, [onClick, disabled]);
+    
+    return (
+      <Comp 
+        className={cn(buttonVariants({ variant, size, className }))} 
+        ref={ref} 
+        {...props}
+        type={props.type || (asChild ? undefined : "button")}
+        onClick={handleClick}
+        disabled={disabled}
+        style={{ ...props.style, cursor: disabled ? 'not-allowed' : 'pointer' }}
+        aria-disabled={disabled}
+      />
+    );
   },
 );
 Button.displayName = "Button";

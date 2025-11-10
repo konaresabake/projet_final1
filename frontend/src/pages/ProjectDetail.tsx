@@ -135,8 +135,12 @@ const LotItem = ({
                     size="xs"
                     disabled={tache.status === 'En cours' || tache.status?.toLowerCase() === 'en cours' || tache.status === 'Terminé' || tache.status?.toLowerCase() === 'terminé'}
                     onClick={async () => {
-                      await updateTache(tache.id, { status: 'En cours' } as any);
-                      await refreshTaches();
+                      try {
+                        await updateTache(tache.id, { status: 'En cours' } as any);
+                        await refreshTaches();
+                      } catch (error) {
+                        console.error('Error updating tache:', error);
+                      }
                     }}
                   >
                     Démarrer
@@ -146,8 +150,12 @@ const LotItem = ({
                     size="xs"
                     disabled={tache.status === 'Terminé' || tache.status?.toLowerCase() === 'terminé'}
                     onClick={async () => {
-                      await updateTache(tache.id, { status: 'Terminé', progress: 100 } as any);
-                      await refreshTaches();
+                      try {
+                        await updateTache(tache.id, { status: 'Terminé', progress: 100 } as any);
+                        await refreshTaches();
+                      } catch (error) {
+                        console.error('Error updating tache:', error);
+                      }
                     }}
                   >
                     Terminer
@@ -245,7 +253,13 @@ const ChantierItem = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setLotDialogOpen(chantier.id)}
+              onClick={() => {
+                try {
+                  setLotDialogOpen(chantier.id);
+                } catch (error) {
+                  console.error('Error opening dialog:', error);
+                }
+              }}
             >
               <Plus className="mr-2 h-3 w-3" />
               Lot
@@ -615,7 +629,15 @@ const ProjectDetail = () => {
                         Hiérarchie : Chantiers → Lots → Tâches
                       </CardDescription>
                     </div>
-                    <Button onClick={() => setChantierDialogOpen(true)}>
+                    <Button 
+                      onClick={() => {
+                        try {
+                          setChantierDialogOpen(true);
+                        } catch (error) {
+                          console.error('Error opening dialog:', error);
+                        }
+                      }}
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Nouveau chantier
                     </Button>
@@ -722,7 +744,15 @@ const ProjectDetail = () => {
                       <CardTitle>Documents</CardTitle>
                       <CardDescription>Fichiers et documents du projet</CardDescription>
                     </div>
-                    <Button>
+                    <Button 
+                      onClick={() => {
+                        try {
+                          toast.info('Fonctionnalité à venir');
+                        } catch (error) {
+                          console.error('Error:', error);
+                        }
+                      }}
+                    >
                       <FileText className="mr-2 h-4 w-4" />
                       Ajouter
                     </Button>

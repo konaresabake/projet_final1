@@ -77,7 +77,16 @@ const ResourceSettings = () => {
               value={supplierForm.contact}
               onChange={(event) => setSupplierForm((prev) => ({ ...prev, contact: event.target.value }))}
             />
-            <Button onClick={handleAddSupplier} disabled={fournisseursLoading}>
+            <Button 
+              onClick={async () => {
+                try {
+                  await handleAddSupplier();
+                } catch (error) {
+                  console.error('Error adding supplier:', error);
+                }
+              }} 
+              disabled={fournisseursLoading}
+            >
               Enregistrer
             </Button>
           </CardContent>
@@ -159,7 +168,16 @@ const ResourceSettings = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={handleAddResource} disabled={ressourcesLoading}>
+            <Button 
+              onClick={async () => {
+                try {
+                  await handleAddResource();
+                } catch (error) {
+                  console.error('Error adding resource:', error);
+                }
+              }} 
+              disabled={ressourcesLoading}
+            >
               Ajouter la ressource
             </Button>
           </CardContent>

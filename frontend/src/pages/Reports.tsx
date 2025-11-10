@@ -148,6 +148,134 @@ const Reports = () => {
     }
   };
 
+  const exportToCSV = () => {
+    try {
+      const headers = ['Projet', 'Budget Total', 'Dépenses', 'Pourcentage', 'Restant'];
+      const rows = budgetRows.map(item => [
+        item.name,
+        formatCurrency(item.total),
+        formatCurrency(item.spent),
+        `${Math.round((item.spent / item.total) * 100)}%`,
+        formatCurrency(item.total - item.spent)
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rapports_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('Export CSV réussi');
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast.error('Erreur lors de l\'export CSV');
+    }
+  };
+
+  const exportToExcel = () => {
+    try {
+      // Créer un fichier CSV qui peut être ouvert dans Excel
+      const headers = ['Projet', 'Budget Total', 'Dépenses', 'Pourcentage', 'Restant', 'Date'];
+      const rows = budgetRows.map(item => [
+        item.name,
+        item.total.toString(),
+        item.spent.toString(),
+        Math.round((item.spent / item.total) * 100).toString(),
+        (item.total - item.spent).toString(),
+        new Date().toLocaleDateString('fr-FR')
+      ]);
+
+      const csvContent = [
+        headers.join('\t'),
+        ...rows.map(row => row.join('\t'))
+      ].join('\n');
+
+      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rapports_${new Date().toISOString().split('T')[0]}.xls`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('Export Excel réussi');
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      toast.error('Erreur lors de l\'export Excel');
+    }
+  };
+
+  const exportToPDF = () => {
+    try {
+      // Créer un contenu HTML pour le PDF
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Rapport - ${new Date().toLocaleDateString('fr-FR')}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h1 { color: #333; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f2f2f2; }
+            </style>
+          </head>
+          <body>
+            <h1>Rapport des Projets</h1>
+            <p>Date: ${new Date().toLocaleDateString('fr-FR')}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Projet</th>
+                  <th>Budget Total</th>
+                  <th>Dépenses</th>
+                  <th>Pourcentage</th>
+                  <th>Restant</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${budgetRows.map(item => `
+                  <tr>
+                    <td>${item.name}</td>
+                    <td>${formatCurrency(item.total)}</td>
+                    <td>${formatCurrency(item.spent)}</td>
+                    <td>${Math.round((item.spent / item.total) * 100)}%</td>
+                    <td>${formatCurrency(item.total - item.spent)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      `;
+
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rapports_${new Date().toISOString().split('T')[0]}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('Export HTML réussi (ouvrez dans votre navigateur et imprimez en PDF)');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast.error('Erreur lors de l\'export PDF');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -174,7 +302,16 @@ const Reports = () => {
               </Select>
               <Dialog open={isRapportDialogOpen} onOpenChange={setIsRapportDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" onClick={() => setIsRapportDialogOpen(true)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      try {
+                        setIsRapportDialogOpen(true);
+                      } catch (error) {
+                        console.error('Error opening dialog:', error);
+                      }
+                    }}
+                  >
                     <FileText className="mr-2 h-4 w-4" />
                     Nouveau rapport
                   </Button>
@@ -227,15 +364,32 @@ const Reports = () => {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button onClick={handleCreateRapport} disabled={rapportsLoading || availableProjects.length === 0}>
+                    <Button 
+                      onClick={async () => {
+                        try {
+                          await handleCreateRapport();
+                        } catch (error) {
+                          console.error('Error creating rapport:', error);
+                        }
+                      }} 
+                      disabled={rapportsLoading || availableProjects.length === 0}
+                    >
                       Générer
                     </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-              <Button onClick={() => toast.info('Export en cours...')}>
+              <Button 
+                onClick={() => {
+                  try {
+                    exportToCSV();
+                  } catch (error) {
+                    console.error('Error exporting:', error);
+                  }
+                }}
+              >
                 <Download className="mr-2 h-4 w-4" />
-                Exporter
+                Exporter (CSV)
               </Button>
             </div>
           </div>

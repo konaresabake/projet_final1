@@ -146,6 +146,127 @@ const Traceability = () => {
     }
   };
 
+  const exportToCSV = () => {
+    try {
+      const headers = ['Date', 'Utilisateur', 'Type', 'Description'];
+      const rows = filteredActivities.map(activity => [
+        new Date(activity.timestamp).toLocaleString('fr-FR'),
+        activity.user,
+        activity.type,
+        activity.description
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `traçabilité_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('Export CSV réussi');
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast.error('Erreur lors de l\'export CSV');
+    }
+  };
+
+  const exportToExcel = () => {
+    try {
+      const headers = ['Date', 'Utilisateur', 'Type', 'Description'];
+      const rows = filteredActivities.map(activity => [
+        new Date(activity.timestamp).toLocaleString('fr-FR'),
+        activity.user,
+        activity.type,
+        activity.description
+      ]);
+
+      const csvContent = [
+        headers.join('\t'),
+        ...rows.map(row => row.join('\t'))
+      ].join('\n');
+
+      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `traçabilité_${new Date().toISOString().split('T')[0]}.xls`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('Export Excel réussi');
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      toast.error('Erreur lors de l\'export Excel');
+    }
+  };
+
+  const exportToPDF = () => {
+    try {
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Traçabilité - ${new Date().toLocaleDateString('fr-FR')}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h1 { color: #333; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f2f2f2; }
+            </style>
+          </head>
+          <body>
+            <h1>Historique de Traçabilité</h1>
+            <p>Date: ${new Date().toLocaleDateString('fr-FR')}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Utilisateur</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredActivities.map(activity => `
+                  <tr>
+                    <td>${new Date(activity.timestamp).toLocaleString('fr-FR')}</td>
+                    <td>${activity.user}</td>
+                    <td>${activity.type}</td>
+                    <td>${activity.description}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      `;
+
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `traçabilité_${new Date().toISOString().split('T')[0]}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('Export HTML réussi (ouvrez dans votre navigateur et imprimez en PDF)');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast.error('Erreur lors de l\'export PDF');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -275,13 +396,40 @@ const Traceability = () => {
               <CardDescription>Téléchargez un rapport d'audit complet</CardDescription>
             </CardHeader>
             <CardContent className="flex gap-4">
-              <Button variant="outline" onClick={() => toast.info('Export PDF en cours...')}>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  try {
+                    exportToPDF();
+                  } catch (error) {
+                    console.error('Error exporting PDF:', error);
+                  }
+                }}
+              >
                 Exporter en PDF
               </Button>
-              <Button variant="outline" onClick={() => toast.info('Export Excel en cours...')}>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  try {
+                    exportToExcel();
+                  } catch (error) {
+                    console.error('Error exporting Excel:', error);
+                  }
+                }}
+              >
                 Exporter en Excel
               </Button>
-              <Button variant="outline" onClick={() => toast.info('Export CSV en cours...')}>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  try {
+                    exportToCSV();
+                  } catch (error) {
+                    console.error('Error exporting CSV:', error);
+                  }
+                }}
+              >
                 Exporter en CSV
               </Button>
             </CardContent>

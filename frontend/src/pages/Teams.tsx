@@ -103,7 +103,16 @@ const Teams = () => {
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-fit" onClick={() => setIsDialogOpen(true)}>
+                <Button 
+                  className="w-fit" 
+                  onClick={() => {
+                    try {
+                      setIsDialogOpen(true);
+                    } catch (error) {
+                      console.error('Error opening dialog:', error);
+                    }
+                  }}
+                >
                   <UserPlus className="mr-2 h-4 w-4" />
                   Ajouter un membre
                 </Button>
@@ -284,7 +293,13 @@ const Teams = () => {
                         variant="outline" 
                         size="sm" 
                         className="flex-1"
-                        onClick={() => toast.info(`Contacter ${member.name}`)}
+                        onClick={() => {
+                          try {
+                            toast.info(`Contacter ${member.name}`);
+                          } catch (error) {
+                            console.error('Error contacting member:', error);
+                          }
+                        }}
                       >
                         Contacter
                       </Button>
@@ -292,7 +307,13 @@ const Teams = () => {
                         variant="outline" 
                         size="sm" 
                         className="flex-1"
-                        onClick={() => toast.info('Fonctionnalité à venir')}
+                        onClick={() => {
+                          try {
+                            toast.info('Fonctionnalité à venir');
+                          } catch (error) {
+                            console.error('Error:', error);
+                          }
+                        }}
                       >
                         Profil
                       </Button>

@@ -268,7 +268,16 @@ const Analysis = () => {
               </div>
               <Dialog open={isIADialogOpen} onOpenChange={setIsIADialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" onClick={() => setIsIADialogOpen(true)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      try {
+                        setIsIADialogOpen(true);
+                      } catch (error) {
+                        console.error('Error opening dialog:', error);
+                      }
+                    }}
+                  >
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Ajouter un modèle
                   </Button>
@@ -310,9 +319,18 @@ const Analysis = () => {
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button onClick={handleCreateIA} disabled={iaLoading}>
-                      Enregistrer
-                    </Button>
+                  <Button 
+                    onClick={async () => {
+                      try {
+                        await handleCreateIA();
+                      } catch (error) {
+                        console.error('Error creating IA:', error);
+                      }
+                    }} 
+                    disabled={iaLoading}
+                  >
+                    Enregistrer
+                  </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

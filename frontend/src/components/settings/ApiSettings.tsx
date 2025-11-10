@@ -64,7 +64,16 @@ const ApiSettings = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <Button onClick={testConnection} disabled={testing}>
+          <Button 
+            onClick={async () => {
+              try {
+                await testConnection();
+              } catch (error) {
+                console.error('Error testing connection:', error);
+              }
+            }} 
+            disabled={testing}
+          >
             {testing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -103,7 +112,15 @@ const ApiSettings = () => {
           </div>
         </div>
 
-        <Button onClick={saveSettings}>
+        <Button 
+          onClick={() => {
+            try {
+              saveSettings();
+            } catch (error) {
+              console.error('Error saving settings:', error);
+            }
+          }}
+        >
           Sauvegarder les paramètres
         </Button>
 

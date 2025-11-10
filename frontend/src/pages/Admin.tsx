@@ -136,7 +136,17 @@ const Admin = () => {
                 Gérez les utilisateurs, validez les comptes et supervisez la plateforme
               </p>
             </div>
-            <Button variant="outline" onClick={() => { logout(); navigate('/home'); }}>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                try {
+                  logout();
+                  navigate('/home');
+                } catch (error) {
+                  console.error('Error logging out:', error);
+                }
+              }}
+            >
               Déconnexion
             </Button>
           </div>
@@ -256,7 +266,13 @@ const Admin = () => {
                                 <Button
                                   size="sm"
                                   variant="default"
-                                  onClick={() => handleApprove(user.id)}
+                                  onClick={async () => {
+                                    try {
+                                      await handleApprove(user.id);
+                                    } catch (error) {
+                                      console.error('Error approving user:', error);
+                                    }
+                                  }}
                                   className="bg-green-600 hover:bg-green-700"
                                 >
                                   <CheckCircle className="mr-2 h-4 w-4" />
@@ -265,7 +281,13 @@ const Admin = () => {
                                 <Button
                                   size="sm"
                                   variant="destructive"
-                                  onClick={() => handleReject(user.id)}
+                                  onClick={async () => {
+                                    try {
+                                      await handleReject(user.id);
+                                    } catch (error) {
+                                      console.error('Error rejecting user:', error);
+                                    }
+                                  }}
                                 >
                                   <XCircle className="mr-2 h-4 w-4" />
                                   Rejeter
@@ -397,7 +419,13 @@ const Admin = () => {
                                   <Button
                                     size="sm"
                                     variant="default"
-                                    onClick={() => handleApprove(user.id)}
+                                    onClick={async () => {
+                                      try {
+                                        await handleApprove(user.id);
+                                      } catch (error) {
+                                        console.error('Error approving user:', error);
+                                      }
+                                    }}
                                     className="bg-green-600 hover:bg-green-700"
                                   >
                                     <CheckCircle className="mr-2 h-4 w-4" />
@@ -406,7 +434,13 @@ const Admin = () => {
                                   <Button
                                     size="sm"
                                     variant="destructive"
-                                    onClick={() => handleReject(user.id)}
+                                    onClick={async () => {
+                                      try {
+                                        await handleReject(user.id);
+                                      } catch (error) {
+                                        console.error('Error rejecting user:', error);
+                                      }
+                                    }}
                                   >
                                     <XCircle className="mr-2 h-4 w-4" />
                                     Rejeter

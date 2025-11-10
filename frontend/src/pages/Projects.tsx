@@ -79,7 +79,12 @@ const Projects = () => {
                 {filteredProjects.length} projet{filteredProjects.length > 1 ? 's' : ''} trouvé{filteredProjects.length > 1 ? 's' : ''}
               </p>
             </div>
-            <Button onClick={() => setIsDialogOpen(true)} size="lg">
+            <Button 
+              onClick={() => {
+                setIsDialogOpen(true);
+              }} 
+              size="lg"
+            >
               <Plus className="mr-2 h-5 w-5" />
               Nouveau Projet
             </Button>
@@ -172,7 +177,12 @@ const Projects = () => {
           {!loading && filteredProjects.length === 0 && (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">Aucun projet trouvé</p>
-              <Button onClick={() => setIsDialogOpen(true)} className="mt-4">
+              <Button 
+                onClick={() => {
+                  setIsDialogOpen(true);
+                }} 
+                className="mt-4"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Créer votre premier projet
               </Button>

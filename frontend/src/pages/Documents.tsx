@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { toast } from "sonner";
 const Documents = () => {
   const { projects } = useProjects();
   const [searchTerm, setSearchTerm] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadZoneRef = useRef<HTMLDivElement>(null);
 
   // Aggregate all documents from all projects
   const allDocuments = projects.flatMap(project => 
@@ -46,15 +48,106 @@ const Documents = () => {
   ];
 
   const handleUpload = () => {
-    toast.success('Fonctionnalité de téléversement à venir');
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+                         'image/jpeg', 'image/png', 'application/zip'];
+
+    Array.from(files).forEach((file) => {
+      if (file.size > maxSize) {
+        toast.error(`Le fichier ${file.name} dépasse la taille maximale de 50MB`);
+        return;
+      }
+
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`Le format du fichier ${file.name} n'est pas supporté`);
+        return;
+      }
+
+      // Ici vous pouvez envoyer le fichier à votre API
+      // Pour l'instant, on simule juste le téléversement
+      toast.success(`Fichier ${file.name} téléversé avec succès (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+    });
+
+    // Réinitialiser l'input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (uploadZoneRef.current) {
+      uploadZoneRef.current.classList.add('bg-primary/5');
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (uploadZoneRef.current) {
+      uploadZoneRef.current.classList.remove('bg-primary/5');
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (uploadZoneRef.current) {
+      uploadZoneRef.current.classList.remove('bg-primary/5');
+    }
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      // Traiter directement les fichiers sans passer par l'input
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+                           'image/jpeg', 'image/png', 'application/zip'];
+
+      Array.from(files).forEach((file) => {
+        if (file.size > maxSize) {
+          toast.error(`Le fichier ${file.name} dépasse la taille maximale de 50MB`);
+          return;
+        }
+
+        if (!allowedTypes.includes(file.type)) {
+          toast.error(`Le format du fichier ${file.name} n'est pas supporté`);
+          return;
+        }
+
+        // Ici vous pouvez envoyer le fichier à votre API
+        toast.success(`Fichier ${file.name} téléversé avec succès (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+      });
+    }
   };
 
   const handleView = (docName: string) => {
     toast.info(`Ouverture de ${docName}`);
+    // Ici vous pouvez implémenter l'ouverture du fichier
   };
 
   const handleDownload = (docName: string) => {
-    toast.success(`Téléchargement de ${docName}`);
+    // Créer un fichier de démonstration
+    const content = `Contenu du document: ${docName}\n\nCeci est un exemple de téléchargement.`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${docName}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Téléchargement de ${docName} démarré`);
   };
 
   const getFileIcon = (type: string) => {
@@ -89,7 +182,24 @@ const Documents = () => {
               <h1 className="text-4xl font-bold mb-2">Gestion documentaire</h1>
               <p className="text-muted-foreground">Centralisez et organisez tous vos documents projet</p>
             </div>
-            <Button className="w-fit" onClick={handleUpload}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.zip"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <Button 
+              className="w-fit" 
+              onClick={() => {
+                try {
+                  handleUpload();
+                } catch (error) {
+                  console.error('Error uploading:', error);
+                }
+              }}
+            >
               <Upload className="mr-2 h-4 w-4" />
               Téléverser des fichiers
             </Button>
@@ -160,10 +270,30 @@ const Documents = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="sm" onClick={() => handleView(doc.name)}>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => {
+                          try {
+                            handleView(doc.name);
+                          } catch (error) {
+                            console.error('Error viewing document:', error);
+                          }
+                        }}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDownload(doc.name)}>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => {
+                          try {
+                            handleDownload(doc.name);
+                          } catch (error) {
+                            console.error('Error downloading document:', error);
+                          }
+                        }}
+                      >
                         <Download className="h-4 w-4" />
                       </Button>
                     </div>
@@ -176,7 +306,13 @@ const Documents = () => {
           {/* Upload Zone */}
           <Card className="border-dashed">
             <CardContent className="p-12">
-              <div className="flex flex-col items-center justify-center text-center space-y-4">
+              <div 
+                ref={uploadZoneRef}
+                className="flex flex-col items-center justify-center text-center space-y-4 transition-colors"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
                   <Upload className="h-10 w-10 text-primary" />
                 </div>
@@ -185,7 +321,17 @@ const Documents = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     ou cliquez pour parcourir vos fichiers
                   </p>
-                  <Button onClick={handleUpload}>Sélectionner des fichiers</Button>
+                  <Button 
+                    onClick={() => {
+                      try {
+                        handleUpload();
+                      } catch (error) {
+                        console.error('Error selecting files:', error);
+                      }
+                    }}
+                  >
+                    Sélectionner des fichiers
+                  </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Formats acceptés: PDF, DOCX, XLSX, JPG, PNG, ZIP (max 50MB)
