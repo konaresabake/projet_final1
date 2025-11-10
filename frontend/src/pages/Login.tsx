@@ -104,7 +104,7 @@ const Login = () => {
                     <Input
                       id="email"
                       type="email"
-                      placeholder="nom@exemple.fr"
+                      placeholder=""
                       value={loginForm.email}
                       onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                       required
@@ -153,7 +153,7 @@ const Login = () => {
                     <Input
                       id="name"
                       type="text"
-                      placeholder="Jean Dupont"
+                      placeholder=""
                       value={registerForm.nom}
                       onChange={(e) => setRegisterForm({ ...registerForm, nom: e.target.value })}
                       required

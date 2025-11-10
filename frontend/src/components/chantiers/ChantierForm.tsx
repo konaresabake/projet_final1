@@ -149,7 +149,7 @@ export const ChantierForm = ({ projetId, initialData, onSubmit, onCancel }: Chan
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="budget">Budget (€) *</Label>
+          <Label htmlFor="budget">Budget (XOF) *</Label>
           <Input
             id="budget"
             type="number"
@@ -162,7 +162,7 @@ export const ChantierForm = ({ projetId, initialData, onSubmit, onCancel }: Chan
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="budget_used">Budget utilisé (€)</Label>
+          <Label htmlFor="budget_used">Budget utilisé (XOF)</Label>
           <Input
             id="budget_used"
             type="number"

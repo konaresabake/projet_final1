@@ -129,7 +129,7 @@ const Projects = () => {
                       </div>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Euro className="h-4 w-4" />
-                        <span>{(project.budget / 1000000).toFixed(1)}M€</span>
+                        <span>{(project.budget / 1000000).toFixed(1)}MXOF</span>
                       </div>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <TrendingUp className="h-4 w-4" />

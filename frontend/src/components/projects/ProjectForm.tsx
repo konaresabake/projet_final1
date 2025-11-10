@@ -121,7 +121,7 @@ export const ProjectForm = ({ onSubmit, onCancel, initialData }: ProjectFormProp
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="budget">Budget (€) *</Label>
+        <Label htmlFor="budget">Budget (XOF) *</Label>
         <Input
           id="budget"
           type="number"

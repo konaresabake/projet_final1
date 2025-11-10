@@ -86,7 +86,7 @@ const Analysis = () => {
     .map(p => ({
       project: p.name,
       forecast: `+${Math.floor(((p.budgetUsed / p.budget) - 1) * 100 + 5)}%`,
-      amount: `${((p.budgetUsed - p.budget) / 1000000).toFixed(1)}M €`
+      amount: `${((p.budgetUsed - p.budget) / 1000000).toFixed(1)}M XOF`
     }));
 
   const getRiskBadge = (risk: string) => {
@@ -392,9 +392,9 @@ const Analysis = () => {
               <CardContent>
                 <div className="space-y-4">
                   {[
-                    { area: "Approvisionnements groupés", savings: "350K €" },
-                    { area: "Optimisation planning", savings: "180K €" },
-                    { area: "Réduction déchets", savings: "95K €" },
+                    { area: "Approvisionnements groupés", savings: "350K XOF" },
+                    { area: "Optimisation planning", savings: "180K XOF" },
+                    { area: "Réduction déchets", savings: "95K XOF" },
                   ].map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between p-3 rounded-lg border">
                       <p className="font-medium">{item.area}</p>

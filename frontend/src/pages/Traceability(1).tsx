@@ -45,7 +45,7 @@ const Traceability = () => {
       action: "Mise à jour du budget",
       user: "Marie Dubois",
       project: "École Primaire Centrale",
-      details: "Budget modifié de 2.3M € à 2.5M €",
+      details: "Budget modifié de 2.3M XOF à 2.5M XOF",
       timestamp: "2025-11-08 14:30",
       icon: FileEdit,
       color: "text-primary",

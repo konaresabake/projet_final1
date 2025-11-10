@@ -135,7 +135,7 @@ const Reports = () => {
     const safeAmount = Number.isFinite(amount) ? amount : 0;
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'EUR',
+      currency: 'XOF',
       minimumFractionDigits: 0,
     }).format(safeAmount);
   };

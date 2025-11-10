@@ -110,7 +110,7 @@ const Chantiers = () => {
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Euro className="h-4 w-4" />
-                          <span>{(chantier.budget / 1000).toFixed(0)}k€</span>
+                          <span>{(chantier.budget / 1000).toFixed(0)}kXOF</span>
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <TrendingUp className="h-4 w-4" />

@@ -138,7 +138,7 @@ const ResourceSettings = () => {
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="Coût unitaire (€)"
+                placeholder="Coût unitaire (XOF)"
                 value={resourceForm.cout_unitaire}
                 onChange={(event) => setResourceForm((prev) => ({ ...prev, cout_unitaire: Number(event.target.value) }))}
               />
@@ -183,7 +183,7 @@ const ResourceSettings = () => {
                       <div>
                         <h3 className="font-semibold">{ressource.nom}</h3>
                         <p className="text-sm text-muted-foreground">
-                          Quantité: {ressource.quantite} • Coût: {Number(ressource.cout_unitaire).toLocaleString('fr-FR')} €
+                          Quantité: {ressource.quantite} • Coût: {Number(ressource.cout_unitaire).toLocaleString('fr-FR')} XOF
                         </p>
                         {ressource.fournisseur_id && (
                           <p className="text-xs text-muted-foreground mt-1">
