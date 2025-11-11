@@ -104,7 +104,7 @@ const Dashboard = () => {
                   <CardTitle>Projets récents</CardTitle>
                   <CardDescription>Vos derniers projets en cours</CardDescription>
                 </div>
-                <Link to="/projets">
+                <Link to="/projects">
                   <Button variant="ghost" size="sm">
                     Voir tout <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -113,7 +113,7 @@ const Dashboard = () => {
               <CardContent>
                 <div className="space-y-4">
                   {recentProjects.map((project) => (
-                    <Link to={`/projets/${project.id}/chantiers`} key={project.id}>
+                    <Link to={`/projects/${project.id}`} key={project.id}>
                       <div className="flex items-start gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">

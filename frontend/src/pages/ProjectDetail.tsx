@@ -135,12 +135,8 @@ const LotItem = ({
                     size="xs"
                     disabled={tache.status === 'En cours' || tache.status?.toLowerCase() === 'en cours' || tache.status === 'Terminé' || tache.status?.toLowerCase() === 'terminé'}
                     onClick={async () => {
-                      try {
-                        await updateTache(tache.id, { status: 'En cours' } as any);
-                        await refreshTaches();
-                      } catch (error) {
-                        console.error('Error updating tache:', error);
-                      }
+                      await updateTache(tache.id, { status: 'En cours' } as any);
+                      await refreshTaches();
                     }}
                   >
                     Démarrer
@@ -150,12 +146,8 @@ const LotItem = ({
                     size="xs"
                     disabled={tache.status === 'Terminé' || tache.status?.toLowerCase() === 'terminé'}
                     onClick={async () => {
-                      try {
-                        await updateTache(tache.id, { status: 'Terminé', progress: 100 } as any);
-                        await refreshTaches();
-                      } catch (error) {
-                        console.error('Error updating tache:', error);
-                      }
+                      await updateTache(tache.id, { status: 'Terminé', progress: 100 } as any);
+                      await refreshTaches();
                     }}
                   >
                     Terminer
@@ -253,13 +245,7 @@ const ChantierItem = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                try {
-                  setLotDialogOpen(chantier.id);
-                } catch (error) {
-                  console.error('Error opening dialog:', error);
-                }
-              }}
+              onClick={() => setLotDialogOpen(chantier.id)}
             >
               <Plus className="mr-2 h-3 w-3" />
               Lot
@@ -326,7 +312,7 @@ const ProjectDetail = () => {
         <main className="flex-1 container py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Projet introuvable</h1>
-            <Link to="/projets">
+            <Link to="/projects">
               <Button>Retour aux projets</Button>
             </Link>
           </div>
@@ -382,6 +368,16 @@ const ProjectDetail = () => {
     setExpandedChantiers(newExpanded);
   };
 
+  const toggleLot = (lotId: string) => {
+    const newExpanded = new Set(expandedLots);
+    if (newExpanded.has(lotId)) {
+      newExpanded.delete(lotId);
+    } else {
+      newExpanded.add(lotId);
+    }
+    setExpandedLots(newExpanded);
+  };
+
   const handleCreateChantier = async (data: ChantierFormData) => {
     try {
       await addChantier({
@@ -406,6 +402,49 @@ const ProjectDetail = () => {
     }
   };
 
+  const handleCreateLot = async (chantierId: string, data: LotFormData) => {
+    try {
+      const { addLot } = useLots(chantierId);
+      await addLot({
+        chantier_id: chantierId,
+        name: data.name,
+        description: data.description,
+        status: data.status,
+        progress: data.progress,
+        start_date: data.start_date,
+        end_date: data.end_date,
+      });
+      setLotDialogOpen(null);
+      await refreshChantiers();
+      await refreshProjects();
+      toast.success('Lot créé avec succès');
+    } catch (error) {
+      console.error('Error creating lot:', error);
+    }
+  };
+
+  const handleCreateTache = async (lotId: string, data: TacheFormData) => {
+    try {
+      const { addTache } = useTaches(lotId);
+      await addTache({
+        lot_id: lotId,
+        name: data.name,
+        description: data.description,
+        status: data.status,
+        priority: data.priority,
+        assigned_to: data.assigned_to,
+        start_date: data.start_date || null,
+        end_date: data.end_date || null,
+      });
+      setTacheDialogOpen(null);
+      await refreshChantiers();
+      await refreshProjects();
+      toast.success('Tâche créée avec succès');
+    } catch (error) {
+      console.error('Error creating tache:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -415,7 +454,7 @@ const ProjectDetail = () => {
           {/* Header */}
           <div>
             <div className="flex items-center gap-4 mb-4">
-              <Link to="/projets">
+              <Link to="/projects">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Retour
@@ -576,15 +615,7 @@ const ProjectDetail = () => {
                         Hiérarchie : Chantiers → Lots → Tâches
                       </CardDescription>
                     </div>
-                    <Button 
-                      onClick={() => {
-                        try {
-                          setChantierDialogOpen(true);
-                        } catch (error) {
-                          console.error('Error opening dialog:', error);
-                        }
-                      }}
-                    >
+                    <Button onClick={() => setChantierDialogOpen(true)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Nouveau chantier
                     </Button>
@@ -691,15 +722,7 @@ const ProjectDetail = () => {
                       <CardTitle>Documents</CardTitle>
                       <CardDescription>Fichiers et documents du projet</CardDescription>
                     </div>
-                    <Button 
-                      onClick={() => {
-                        try {
-                          toast.info('Fonctionnalité à venir');
-                        } catch (error) {
-                          console.error('Error:', error);
-                        }
-                      }}
-                    >
+                    <Button>
                       <FileText className="mr-2 h-4 w-4" />
                       Ajouter
                     </Button>
