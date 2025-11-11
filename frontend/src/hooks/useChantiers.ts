@@ -74,6 +74,8 @@ export const useChantiers = (projetId?: string) => {
       
       const created = await api.post<Chantier>('/chantiers/', payload);
       setChantiers([created, ...chantiers]);
+      // Rafraîchir pour s'assurer que les calculs d'avancement sont à jour
+      await fetchChantiers();
       toast.success('Chantier créé avec succès');
       return created;
     } catch (error: any) {
@@ -95,6 +97,8 @@ export const useChantiers = (projetId?: string) => {
       }
       const updated = await api.patch<Chantier>(`/chantiers/${id}/`, payload);
       setChantiers(chantiers.map(c => (c.id === id ? updated : c)));
+      // Rafraîchir pour s'assurer que les calculs d'avancement sont à jour
+      await fetchChantiers();
       toast.success('Chantier mis à jour');
       return updated;
     } catch (error) {

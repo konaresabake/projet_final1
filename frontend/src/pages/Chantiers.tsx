@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -9,15 +9,26 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ChantierForm, ChantierFormData } from '@/components/chantiers/ChantierForm';
 import { useChantiers } from '@/hooks/useChantiers';
+import { useProjects } from '@/contexts/ProjectContext';
 import { Plus, MapPin, Calendar, Euro, TrendingUp, ArrowLeft } from 'lucide-react';
 
 const Chantiers = () => {
   const { projetId } = useParams<{ projetId: string }>();
-  const { chantiers, loading, addChantier } = useChantiers(projetId);
+  const { chantiers, loading, addChantier, refreshChantiers } = useChantiers(projetId);
+  const { refreshProjects } = useProjects();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const location = useLocation();
+
+  // Rafraîchir les données quand on arrive sur la page
+  useEffect(() => {
+    refreshChantiers();
+    refreshProjects();
+  }, [location.pathname, projetId, refreshChantiers, refreshProjects]);
 
   const handleCreateChantier = async (data: ChantierFormData) => {
     await addChantier(data);
+    // Rafraîchir le contexte global pour synchroniser toutes les pages
+    await refreshProjects();
     setIsDialogOpen(false);
   };
 

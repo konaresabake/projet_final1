@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -18,11 +19,21 @@ import { useRapports } from "@/hooks/useRapports";
 import { useAlertes } from "@/hooks/useAlertes";
 
 const Reports = () => {
-  const { projects } = useProjects();
-  const { projets: apiProjets } = useProjets();
-  const { budgets, loading: budgetsLoading } = useBudgets();
-  const { rapports, loading: rapportsLoading, addRapport } = useRapports();
-  const { alertes, loading: alertesLoading } = useAlertes();
+  const { projects, refreshProjects } = useProjects();
+  const { projets: apiProjets, refreshProjets } = useProjets();
+  const { budgets, loading: budgetsLoading, refreshBudgets } = useBudgets();
+  const { rapports, loading: rapportsLoading, addRapport, refreshRapports } = useRapports();
+  const { alertes, loading: alertesLoading, refreshAlertes } = useAlertes();
+  const location = useLocation();
+
+  // Rafraîchir les données quand on arrive sur la page
+  useEffect(() => {
+    refreshProjects();
+    refreshProjets();
+    refreshBudgets();
+    refreshRapports();
+    refreshAlertes();
+  }, [location.pathname, refreshProjects, refreshProjets, refreshBudgets, refreshRapports, refreshAlertes]);
 
   const normalizedProjects = useMemo(() => {
     if (apiProjets.length > 0) {
@@ -123,6 +134,12 @@ const Reports = () => {
         titre: rapportForm.titre,
         contenu: rapportForm.contenu,
       });
+      // Rafraîchir toutes les données pour synchroniser
+      await Promise.all([
+        refreshRapports(),
+        refreshProjects(),
+        refreshProjets(),
+      ]);
       toast.success('Rapport généré');
       setRapportForm({ projet: "", titre: "", contenu: "" });
       setIsRapportDialogOpen(false);

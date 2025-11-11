@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -8,14 +8,25 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProjetForm, ProjetFormData } from '@/components/projets/ProjetForm';
 import { useProjets } from '@/hooks/useProjets';
+import { useProjects } from '@/contexts/ProjectContext';
 import { Plus, Folder } from 'lucide-react';
 
 const Projets = () => {
-  const { projets, loading, addProjet } = useProjets();
+  const { projets, loading, addProjet, refreshProjets } = useProjets();
+  const { refreshProjects } = useProjects();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const location = useLocation();
+
+  // Rafraîchir les données quand on arrive sur la page
+  useEffect(() => {
+    refreshProjets();
+    refreshProjects();
+  }, [location.pathname, refreshProjets, refreshProjects]);
 
   const handleCreateProjet = async (data: ProjetFormData) => {
     await addProjet(data);
+    // Rafraîchir le contexte global pour synchroniser toutes les pages
+    await refreshProjects();
     setIsDialogOpen(false);
   };
 

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -9,15 +9,26 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { LotForm, LotFormData } from '@/components/lots/LotForm';
 import { useLots } from '@/hooks/useLots';
+import { useProjects } from '@/contexts/ProjectContext';
 import { Plus, Calendar, ArrowLeft, Package } from 'lucide-react';
 
 const Lots = () => {
   const { projetId, chantierId } = useParams<{ projetId: string; chantierId: string }>();
-  const { lots, loading, addLot } = useLots(chantierId);
+  const { lots, loading, addLot, refreshLots } = useLots(chantierId);
+  const { refreshProjects } = useProjects();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const location = useLocation();
+
+  // Rafraîchir les données quand on arrive sur la page
+  useEffect(() => {
+    refreshLots();
+    refreshProjects();
+  }, [location.pathname, chantierId, refreshLots, refreshProjects]);
 
   const handleCreateLot = async (data: LotFormData) => {
     await addLot(data);
+    // Rafraîchir le contexte global pour synchroniser toutes les pages
+    await refreshProjects();
     setIsDialogOpen(false);
   };
 

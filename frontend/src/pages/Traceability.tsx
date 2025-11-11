@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -10,8 +11,14 @@ import { useProjects } from "@/contexts/ProjectContext";
 import { toast } from "sonner";
 
 const Traceability = () => {
-  const { activities } = useProjects();
+  const { activities, refreshProjects } = useProjects();
   const [searchTerm, setSearchTerm] = useState("");
+  const location = useLocation();
+
+  // Rafraîchir les données quand on arrive sur la page
+  useEffect(() => {
+    refreshProjects();
+  }, [location.pathname, refreshProjects]);
 
   // Utiliser uniquement les activités du contexte, pas de données mockées
   const filteredActivities = activities.filter(activity =>

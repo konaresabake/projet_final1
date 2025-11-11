@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -8,15 +8,33 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TacheForm, TacheFormData } from '@/components/taches/TacheForm';
 import { useTaches } from '@/hooks/useTaches';
+import { useProjects } from '@/contexts/ProjectContext';
 import { Plus, Calendar, User, ArrowLeft, CheckSquare } from 'lucide-react';
 
 const Taches = () => {
   const { projetId, chantierId, lotId } = useParams<{ projetId: string; chantierId: string; lotId: string }>();
-  const { taches, loading, addTache, updateTache } = useTaches(lotId);
+  const { taches, loading, addTache, updateTache, refreshTaches } = useTaches(lotId);
+  const { refreshProjects, addActivity } = useProjects();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const location = useLocation();
+
+  // Rafraîchir les données quand on arrive sur la page
+  useEffect(() => {
+    refreshTaches();
+    refreshProjects();
+  }, [location.pathname, lotId, refreshTaches, refreshProjects]);
 
   const handleCreateTache = async (data: TacheFormData) => {
     await addTache(data);
+    // Rafraîchir le contexte global pour synchroniser toutes les pages
+    await refreshProjects();
+    // Ajouter une activité
+    addActivity({
+      type: 'update',
+      description: `Nouvelle tâche créée: ${data.name}`,
+      user: 'Vous',
+      projectId: projetId || '',
+    });
     setIsDialogOpen(false);
   };
 
@@ -118,6 +136,13 @@ const Taches = () => {
                         onClick={async () => {
                           try {
                             await updateTache(tache.id, { status: 'En cours' } as any);
+                            await refreshProjects();
+                            addActivity({
+                              type: 'update',
+                              description: `Tâche démarrée: ${tache.name}`,
+                              user: 'Vous',
+                              projectId: projetId || '',
+                            });
                           } catch (error) {
                             console.error('Error updating tache:', error);
                           }
@@ -132,6 +157,13 @@ const Taches = () => {
                         onClick={async () => {
                           try {
                             await updateTache(tache.id, { status: 'Terminé', progress: 100 } as any);
+                            await refreshProjects();
+                            addActivity({
+                              type: 'milestone',
+                              description: `Tâche terminée: ${tache.name}`,
+                              user: 'Vous',
+                              projectId: projetId || '',
+                            });
                           } catch (error) {
                             console.error('Error updating tache:', error);
                           }

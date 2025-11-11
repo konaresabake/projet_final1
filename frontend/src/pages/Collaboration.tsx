@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,9 +13,15 @@ import { MessageSquare, Send, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Collaboration = () => {
-  const { projects, comments, addComment, activities } = useProjects();
+  const { projects, comments, addComment, activities, refreshProjects } = useProjects();
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [newComment, setNewComment] = useState('');
+  const location = useLocation();
+
+  // Rafraîchir les données quand on arrive sur la page
+  useEffect(() => {
+    refreshProjects();
+  }, [location.pathname, refreshProjects]);
 
   const filteredComments = selectedProject === 'all'
     ? comments
@@ -35,6 +42,15 @@ const Collaboration = () => {
     addComment({
       author: 'Utilisateur',
       content: newComment,
+      projectId: selectedProject,
+    });
+
+    // Ajouter une activité pour synchroniser avec les autres pages
+    const project = projects.find(p => p.id === selectedProject);
+    addActivity({
+      type: 'comment',
+      description: `Nouveau commentaire sur ${project?.name || 'le projet'}: ${newComment.substring(0, 50)}...`,
+      user: 'Utilisateur',
       projectId: selectedProject,
     });
 

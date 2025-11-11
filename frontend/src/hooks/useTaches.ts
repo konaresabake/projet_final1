@@ -41,6 +41,8 @@ export const useTaches = (lotId?: string) => {
       const payload: any = { ...tache, lot: tache.lot_id };
       const created = await api.post<Tache>('/taches/', payload);
       setTaches([created, ...taches]);
+      // Rafraîchir pour s'assurer que les calculs d'avancement sont à jour
+      await fetchTaches();
       toast.success('Tâche créée avec succès');
       return created;
     } catch (error) {
@@ -59,6 +61,8 @@ export const useTaches = (lotId?: string) => {
       }
       const updated = await api.patch<Tache>(`/taches/${id}/`, payload);
       setTaches(taches.map(t => (t.id === id ? updated : t)));
+      // Rafraîchir pour s'assurer que les calculs d'avancement sont à jour
+      await fetchTaches();
       toast.success('Tâche mise à jour');
       return updated;
     } catch (error) {

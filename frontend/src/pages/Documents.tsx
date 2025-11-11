@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,13 @@ interface LocalDocument extends Document {
 }
 
 const Documents = () => {
-  const { projects } = useProjects();
+  const { projects, refreshProjects, addActivity } = useProjects();
+  const location = useLocation();
+
+  // Rafraîchir les données quand on arrive sur la page
+  useEffect(() => {
+    refreshProjects();
+  }, [location.pathname, refreshProjects]);
   const [searchTerm, setSearchTerm] = useState("");
   const [uploadedDocuments, setUploadedDocuments] = useState<LocalDocument[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -115,6 +122,16 @@ const Documents = () => {
       setUploadedDocuments(prev => [...newDocuments, ...prev]);
       toast.success(`${newDocuments.length} fichier${newDocuments.length > 1 ? 's' : ''} téléversé${newDocuments.length > 1 ? 's' : ''} avec succès`);
       
+      // Ajouter une activité pour synchroniser avec les autres pages
+      newDocuments.forEach(doc => {
+        addActivity({
+          type: 'document',
+          description: `Document téléversé: ${doc.name}`,
+          user: 'Vous',
+          projectId: '', // Peut être associé à un projet si nécessaire
+        });
+      });
+      
       // TODO: Ici vous pouvez envoyer les fichiers à votre API
       // Exemple avec FormData:
       // const formData = new FormData();
@@ -183,6 +200,16 @@ const Documents = () => {
         // Ajouter les documents à l'état local pour qu'ils s'affichent immédiatement
         setUploadedDocuments(prev => [...newDocuments, ...prev]);
         toast.success(`${newDocuments.length} fichier${newDocuments.length > 1 ? 's' : ''} téléversé${newDocuments.length > 1 ? 's' : ''} avec succès`);
+        
+        // Ajouter une activité pour synchroniser avec les autres pages
+        newDocuments.forEach(doc => {
+          addActivity({
+            type: 'document',
+            description: `Document téléversé: ${doc.name}`,
+            user: 'Vous',
+            projectId: '', // Peut être associé à un projet si nécessaire
+          });
+        });
         
         // TODO: Ici vous pouvez envoyer les fichiers à votre API
       }

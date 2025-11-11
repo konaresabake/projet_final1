@@ -39,6 +39,8 @@ export const useLots = (chantierId?: string) => {
       const payload: any = { ...lot, chantier: lot.chantier_id };
       const created = await api.post<Lot>('/lots/', payload);
       setLots([created, ...lots]);
+      // Rafraîchir pour s'assurer que les calculs d'avancement sont à jour
+      await fetchLots();
       toast.success('Lot créé avec succès');
       return created;
     } catch (error) {
@@ -57,6 +59,8 @@ export const useLots = (chantierId?: string) => {
       }
       const updated = await api.patch<Lot>(`/lots/${id}/`, payload);
       setLots(lots.map(l => (l.id === id ? updated : l)));
+      // Rafraîchir pour s'assurer que les calculs d'avancement sont à jour
+      await fetchLots();
       toast.success('Lot mis à jour');
       return updated;
     } catch (error) {

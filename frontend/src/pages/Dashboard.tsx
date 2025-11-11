@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useMemo, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { StatCard } from '@/components/ui/stat-card';
@@ -11,7 +11,13 @@ import { Building2, TrendingUp, AlertCircle, CheckCircle, Clock, Euro, ArrowRigh
 import { Button } from '@/components/ui/button';
 
 const Dashboard = () => {
-  const { projects, activities } = useProjects();
+  const { projects, activities, refreshProjects } = useProjects();
+  const location = useLocation();
+
+  // Rafraîchir les données quand on arrive sur la page
+  useEffect(() => {
+    refreshProjects();
+  }, [location.pathname, refreshProjects]);
 
   const stats = useMemo(() => {
     const activeProjects = projects.filter(p => p.status === 'En cours').length;

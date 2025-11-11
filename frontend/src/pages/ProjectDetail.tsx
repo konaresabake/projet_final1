@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -304,6 +304,12 @@ const ProjectDetail = () => {
   
   // États pour l'affichage hiérarchique
   const [expandedChantiers, setExpandedChantiers] = useState<Set<string>>(new Set());
+
+  // Rafraîchir les données quand on arrive sur la page ou quand l'ID change
+  useEffect(() => {
+    refreshProjects();
+    refreshChantiers();
+  }, [id, refreshProjects, refreshChantiers]);
 
   if (!project) {
     return (

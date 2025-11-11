@@ -232,17 +232,58 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       location: project.location,
       manager: project.manager,
     };
-    await addProjet(payload);
-  }, [addProjet]);
+    const created = await addProjet(payload);
+    // Rafraîchir toutes les données liées
+    await Promise.all([
+      refreshProjets(),
+      refreshChantiers(),
+      refreshBudgets(),
+    ]);
+    // Ajouter une activité
+    addActivity({
+      type: 'update',
+      description: `Nouveau projet créé: ${project.name}`,
+      user: 'Vous',
+      projectId: created?.id || '',
+    });
+  }, [addProjet, refreshProjets, refreshChantiers, refreshBudgets, addActivity]);
 
   const handleUpdateProject = useCallback(async (id: string, updates: Partial<Project>) => {
     const payload = toApiPayload(updates);
     await updateProjet(id, payload);
-  }, [updateProjet]);
+    // Rafraîchir toutes les données liées
+    await Promise.all([
+      refreshProjets(),
+      refreshChantiers(),
+      refreshBudgets(),
+    ]);
+    // Ajouter une activité
+    const project = projects.find(p => p.id === id);
+    addActivity({
+      type: 'update',
+      description: `Projet mis à jour: ${project?.name || id}`,
+      user: 'Vous',
+      projectId: id,
+    });
+  }, [updateProjet, refreshProjets, refreshChantiers, refreshBudgets, projects, addActivity]);
 
   const handleDeleteProject = useCallback(async (id: string) => {
+    const project = projects.find(p => p.id === id);
     await deleteProjet(id);
-  }, [deleteProjet]);
+    // Rafraîchir toutes les données liées
+    await Promise.all([
+      refreshProjets(),
+      refreshChantiers(),
+      refreshBudgets(),
+    ]);
+    // Ajouter une activité
+    addActivity({
+      type: 'update',
+      description: `Projet supprimé: ${project?.name || id}`,
+      user: 'Vous',
+      projectId: id,
+    });
+  }, [deleteProjet, refreshProjets, refreshChantiers, refreshBudgets, projects, addActivity]);
 
   const refreshProjects = useCallback(async () => {
     await Promise.all([

@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,8 +15,15 @@ import { toast } from "sonner";
 import { useUtilisateurs } from "@/hooks/useUtilisateurs";
 
 const Teams = () => {
-  const { projects } = useProjects();
-  const { utilisateurs, loading, addUtilisateur } = useUtilisateurs();
+  const { projects, refreshProjects } = useProjects();
+  const { utilisateurs, loading, addUtilisateur, refreshUtilisateurs } = useUtilisateurs();
+  const location = useLocation();
+
+  // Rafraîchir les données quand on arrive sur la page
+  useEffect(() => {
+    refreshProjects();
+    refreshUtilisateurs();
+  }, [location.pathname, refreshProjects, refreshUtilisateurs]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({ nom: "", email: "", mot_de_passe: "", role: "CHEF_DE_PROJET" as const });
 
@@ -176,6 +184,9 @@ const Teams = () => {
                       }
                       try {
                         await addUtilisateur(formData);
+                        // Rafraîchir pour synchroniser avec les autres pages
+                        await refreshUtilisateurs();
+                        await refreshProjects();
                         setFormData({ nom: "", email: "", mot_de_passe: "", role: "CHEF_DE_PROJET" });
                         setIsDialogOpen(false);
                       } catch (error) {
