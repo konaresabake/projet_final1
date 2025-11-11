@@ -11,13 +11,13 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useChantiers } from "@/hooks/useChantiers";
-import { useLots } from "@/hooks/useLots";
 import { useTaches } from "@/hooks/useTaches";
 import { ChantierForm, ChantierFormData } from "@/components/chantiers/ChantierForm";
 import { LotForm, LotFormData } from "@/components/lots/LotForm";
 import { TacheForm, TacheFormData } from "@/components/taches/TacheForm";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 // Composant pour afficher un lot avec ses tâches
 const LotItem = ({ 
@@ -410,44 +410,35 @@ const ProjectDetail = () => {
 
   const handleCreateLot = async (chantierId: string, data: LotFormData) => {
     try {
-      const { addLot } = useLots(chantierId);
-      await addLot({
-        chantier_id: chantierId,
-        name: data.name,
-        description: data.description,
-        status: data.status,
-        progress: data.progress,
-        start_date: data.start_date,
-        end_date: data.end_date,
-      });
+      const payload: any = {
+        ...data,
+        chantier: chantierId,
+      };
+      await api.post('/lots/', payload);
       setLotDialogOpen(null);
       await refreshChantiers();
       await refreshProjects();
       toast.success('Lot créé avec succès');
     } catch (error) {
       console.error('Error creating lot:', error);
+      toast.error('Erreur lors de la création du lot');
     }
   };
 
   const handleCreateTache = async (lotId: string, data: TacheFormData) => {
     try {
-      const { addTache } = useTaches(lotId);
-      await addTache({
-        lot_id: lotId,
-        name: data.name,
-        description: data.description,
-        status: data.status,
-        priority: data.priority,
-        assigned_to: data.assigned_to,
-        start_date: data.start_date || null,
-        end_date: data.end_date || null,
-      });
+      const payload: any = {
+        ...data,
+        lot: lotId,
+      };
+      await api.post('/taches/', payload);
       setTacheDialogOpen(null);
       await refreshChantiers();
       await refreshProjects();
       toast.success('Tâche créée avec succès');
     } catch (error) {
       console.error('Error creating tache:', error);
+      toast.error('Erreur lors de la création de la tâche');
     }
   };
 
