@@ -12,7 +12,7 @@ const Header = () => {
 
   const navItems = [
     { path: "/dashboard", label: "Tableau de bord" },
-    { path: "/projects", label: "Projets" },
+    { path: "/projets", label: "Projets" },
     { path: "/progress", label: "Avancement" },
     { path: "/analysis", label: "Analyse" },
     { path: "/documents", label: "Documents" },
