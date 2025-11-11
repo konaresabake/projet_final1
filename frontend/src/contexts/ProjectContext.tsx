@@ -220,6 +220,25 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
 
   const loading = projetsLoading || chantiersLoading || budgetsLoading;
 
+  // Définir addActivity et addComment avant les callbacks qui les utilisent
+  const addComment = useCallback((comment: Omit<Comment, 'id' | 'timestamp'>) => {
+    const newComment = {
+      ...comment,
+      id: generateId(),
+      timestamp: new Date().toISOString(),
+    };
+    setComments((prev) => [newComment, ...prev]);
+  }, []);
+
+  const addActivity = useCallback((activity: Omit<Activity, 'id' | 'timestamp'>) => {
+    const newActivity = {
+      ...activity,
+      id: generateId(),
+      timestamp: new Date().toISOString(),
+    };
+    setActivities((prev) => [newActivity, ...prev]);
+  }, []);
+
   const handleAddProject = useCallback(async (project: NewProjectInput) => {
     const payload: Omit<ApiProjet, 'id' | 'created_at' | 'updated_at'> = {
       name: project.name,
@@ -292,24 +311,6 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
       refreshBudgets(),
     ]);
   }, [refreshProjets, refreshChantiers, refreshBudgets]);
-
-  const addComment = (comment: Omit<Comment, 'id' | 'timestamp'>) => {
-    const newComment = {
-      ...comment,
-      id: generateId(),
-      timestamp: new Date().toISOString(),
-    };
-    setComments((prev) => [newComment, ...prev]);
-  };
-
-  const addActivity = (activity: Omit<Activity, 'id' | 'timestamp'>) => {
-    const newActivity = {
-      ...activity,
-      id: generateId(),
-      timestamp: new Date().toISOString(),
-    };
-    setActivities((prev) => [newActivity, ...prev]);
-  };
 
   return (
     <ProjectContext.Provider
