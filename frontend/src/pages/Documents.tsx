@@ -20,24 +20,14 @@ const Documents = () => {
     project.documents.map(doc => ({
       ...doc,
       projectName: project.name,
-      category: doc.type.includes('Plan') ? 'Plans' : 
-                doc.type.includes('Contrat') ? 'Contrats' :
-                doc.type.includes('Rapport') ? 'Rapports' :
-                doc.type.includes('Photo') ? 'Photos' : 'Finances'
+      category: doc.type?.includes('Plan') ? 'Plans' : 
+                doc.type?.includes('Contrat') ? 'Contrats' :
+                doc.type?.includes('Rapport') ? 'Rapports' :
+                doc.type?.includes('Photo') ? 'Photos' : 'Autres'
     }))
   );
 
-  const documents = allDocuments.length > 0 ? allDocuments : [
-    { name: "Plans architecturaux - École Primaire", type: "PDF", size: "12.5 MB", date: "15/01/2025", category: "Plans" },
-    { name: "Permis de construire - Hôpital", type: "PDF", size: "2.3 MB", date: "10/01/2025", category: "Administratif" },
-    { name: "Contrat entreprise générale", type: "DOCX", size: "850 KB", date: "08/01/2025", category: "Contrats" },
-    { name: "Rapport inspection N°1", type: "PDF", size: "1.2 MB", date: "05/11/2025", category: "Rapports" },
-    { name: "Photos chantier - Nov 2025", type: "ZIP", size: "45 MB", date: "03/11/2025", category: "Photos" },
-    { name: "Devis matériaux phase 2", type: "XLSX", size: "520 KB", date: "28/10/2025", category: "Finances" },
-    { name: "PV réunion chantier #12", type: "PDF", size: "340 KB", date: "25/10/2025", category: "Réunions" },
-    { name: "Plan sécurité et santé", type: "PDF", size: "3.8 MB", date: "20/10/2025", category: "Sécurité" },
-    { name: "Facture travaux Octobre", type: "PDF", size: "680 KB", date: "15/10/2025", category: "Finances" },
-  ];
+  const documents = allDocuments;
 
   const categories = [
     { name: "Plans", count: allDocuments.filter(d => d.category === 'Plans').length, color: "bg-primary" },

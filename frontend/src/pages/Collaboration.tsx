@@ -12,7 +12,7 @@ import { MessageSquare, Send, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Collaboration = () => {
-  const { projects, comments, addComment } = useProjects();
+  const { projects, comments, addComment, activities } = useProjects();
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [newComment, setNewComment] = useState('');
 
@@ -50,11 +50,13 @@ const Collaboration = () => {
       .toUpperCase();
   };
 
-  const notifications = [
-    { id: 1, message: 'Nouveau commentaire sur "Pont de la Seine"', time: 'Il y a 5 min', read: false },
-    { id: 2, message: 'Document partagé dans "Rénovation Gare"', time: 'Il y a 1h', read: false },
-    { id: 3, message: 'Mise à jour du planning "Extension Métro"', time: 'Il y a 2h', read: true },
-  ];
+  // Utiliser les activités récentes comme notifications
+  const notifications = activities.slice(0, 5).map((activity, idx) => ({
+    id: activity.id,
+    message: activity.description,
+    time: new Date(activity.timestamp).toLocaleString('fr-FR'),
+    read: idx > 2, // Les 3 premiers sont non lus
+  }));
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -196,25 +198,30 @@ const Collaboration = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Équipe en ligne</CardTitle>
-                  <CardDescription>Membres actifs</CardDescription>
+                  <CardTitle>Activités récentes</CardTitle>
+                  <CardDescription>Dernières actions sur les projets</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {['Sophie Martin', 'Jean Dupont', 'Marc Leblanc'].map((member) => (
-                      <div key={member} className="flex items-center gap-3">
+                    {activities.slice(0, 5).map((activity) => (
+                      <div key={activity.id} className="flex items-center gap-3">
                         <div className="relative">
                           <Avatar>
-                            <AvatarFallback>{getInitials(member)}</AvatarFallback>
+                            <AvatarFallback>{getInitials(activity.user)}</AvatarFallback>
                           </Avatar>
-                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">{member}</p>
-                          <p className="text-xs text-muted-foreground">En ligne</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{activity.user}</p>
+                          <p className="text-xs text-muted-foreground truncate">{activity.description}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(activity.timestamp).toLocaleString('fr-FR')}
+                          </p>
                         </div>
                       </div>
                     ))}
+                    {activities.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">Aucune activité récente</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

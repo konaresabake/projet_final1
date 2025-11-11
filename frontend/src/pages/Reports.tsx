@@ -659,64 +659,69 @@ const Reports = () => {
             </Card>
           </div>
 
-          {/* Performance by Category */}
+          {/* Performance by Category - Calculé depuis les projets réels */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Performance par type</CardTitle>
-                <CardDescription>Répartition des projets par catégorie</CardDescription>
+                <CardTitle>Performance par projet</CardTitle>
+                <CardDescription>Répartition des projets par statut</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { category: "Éducation", projects: 8, progress: 72 },
-                    { category: "Santé", projects: 5, progress: 65 },
-                    { category: "Infrastructure", projects: 7, progress: 85 },
-                    { category: "Administration", projects: 4, progress: 58 },
-                  ].map((item, idx) => (
-                    <div key={idx} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{item.category}</p>
-                          <p className="text-sm text-muted-foreground">{item.projects} projets</p>
+                  {normalizedProjects.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">Aucun projet disponible</p>
+                  ) : (
+                    normalizedProjects.slice(0, 5).map((project) => (
+                      <div key={project.id} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{project.name}</p>
+                            <p className="text-sm text-muted-foreground">{project.status}</p>
+                          </div>
+                          <p className="text-xl font-bold">{project.progress || 0}%</p>
                         </div>
-                        <p className="text-xl font-bold">{item.progress}%</p>
+                        <Progress value={project.progress || 0} className="h-2" />
                       </div>
-                      <Progress value={item.progress} className="h-2" />
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>KPIs clés</CardTitle>
-                <CardDescription>Indicateurs de performance globaux</CardDescription>
+                <CardTitle>Indicateurs globaux</CardTitle>
+                <CardDescription>Métriques calculées depuis les données réelles</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { label: "Respect des délais", value: 85, target: 90 },
-                    { label: "Respect du budget", value: 78, target: 85 },
-                    { label: "Qualité des livrables", value: 92, target: 90 },
-                    { label: "Satisfaction clients", value: 88, target: 85 },
-                  ].map((kpi, idx) => (
-                    <div key={idx} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium">{kpi.label}</p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm text-muted-foreground">Objectif: {kpi.target}%</p>
-                          <p className={`text-xl font-bold ${
-                            kpi.value >= kpi.target ? 'text-success' : 'text-warning'
-                          }`}>
-                            {kpi.value}%
-                          </p>
-                        </div>
-                      </div>
-                      <Progress value={kpi.value} className="h-2" />
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">Progression moyenne</p>
+                      <p className="text-xl font-bold">{avgPerformance}%</p>
                     </div>
-                  ))}
+                    <Progress value={avgPerformance} className="h-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">Budget consommé</p>
+                      <p className="text-xl font-bold">{budgetPercent}%</p>
+                    </div>
+                    <Progress value={budgetPercent} className="h-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">Durée moyenne</p>
+                      <p className="text-xl font-bold">{avgDuration} mois</p>
+                    </div>
+                    <Progress value={Math.min(100, (avgDuration / 24) * 100)} className="h-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">Total projets</p>
+                      <p className="text-xl font-bold">{normalizedProjects.length}</p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

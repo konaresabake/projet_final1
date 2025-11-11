@@ -13,6 +13,7 @@ const Traceability = () => {
   const { activities } = useProjects();
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Utiliser uniquement les activités du contexte, pas de données mockées
   const filteredActivities = activities.filter(activity =>
     activity.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     activity.user.toLowerCase().includes(searchTerm.toLowerCase())
@@ -38,97 +39,6 @@ const Traceability = () => {
     }
   };
 
-  const mockActivities = [
-    {
-      id: 1,
-      type: "modification",
-      action: "Mise à jour du budget",
-      user: "Marie Dubois",
-      project: "École Primaire Centrale",
-      details: "Budget modifié de 2.3M XOF à 2.5M XOF",
-      timestamp: "2025-11-08 14:30",
-      icon: FileEdit,
-      color: "text-primary",
-    },
-    {
-      id: 2,
-      type: "document",
-      action: "Document ajouté",
-      user: "Jean Martin",
-      project: "Hôpital Régional",
-      details: "Plans architecturaux phase 2 téléversés",
-      timestamp: "2025-11-08 11:15",
-      icon: Upload,
-      color: "text-accent",
-    },
-    {
-      id: 3,
-      type: "validation",
-      action: "Phase validée",
-      user: "Sophie Laurent",
-      project: "École Primaire Centrale",
-      details: "Validation: Fondations terminées",
-      timestamp: "2025-11-07 16:45",
-      icon: CheckCircle2,
-      color: "text-success",
-    },
-    {
-      id: 4,
-      type: "team",
-      action: "Membre ajouté",
-      user: "Pierre Durand",
-      project: "Bâtiment Administratif",
-      details: "Lucas Bernard ajouté comme ingénieur",
-      timestamp: "2025-11-07 10:20",
-      icon: UserPlus,
-      color: "text-warning",
-    },
-    {
-      id: 5,
-      type: "alert",
-      action: "Alerte créée",
-      user: "Système",
-      project: "Hôpital Régional",
-      details: "Retard potentiel détecté sur phase installations",
-      timestamp: "2025-11-06 15:00",
-      icon: AlertCircle,
-      color: "text-destructive",
-    },
-    {
-      id: 6,
-      type: "modification",
-      action: "Échéance modifiée",
-      user: "Marie Dubois",
-      project: "Bâtiment Administratif",
-      details: "Date de fin reportée au 15/02/2026",
-      timestamp: "2025-11-06 09:30",
-      icon: FileEdit,
-      color: "text-primary",
-    },
-    {
-      id: 7,
-      type: "document",
-      action: "Document mis à jour",
-      user: "Jean Martin",
-      project: "École Primaire Centrale",
-      details: "Révision des plans électriques",
-      timestamp: "2025-11-05 14:00",
-      icon: Upload,
-      color: "text-accent",
-    },
-    {
-      id: 8,
-      type: "validation",
-      action: "Inspection réalisée",
-      user: "Inspecteur Régional",
-      project: "Route Nationale N12",
-      details: "Inspection conforme - Rapport disponible",
-      timestamp: "2025-11-05 11:30",
-      icon: CheckCircle2,
-      color: "text-success",
-    },
-  ];
-
   const getActionType = (type: string) => {
     switch (type) {
       case "modification":
@@ -148,12 +58,13 @@ const Traceability = () => {
 
   const exportToCSV = () => {
     try {
-      const headers = ['Date', 'Utilisateur', 'Type', 'Description'];
+      const headers = ['Date', 'Utilisateur', 'Type', 'Description', 'Projet'];
       const rows = filteredActivities.map(activity => [
         new Date(activity.timestamp).toLocaleString('fr-FR'),
         activity.user,
         activity.type,
-        activity.description
+        activity.description,
+        activity.projectId || 'N/A'
       ]);
 
       const csvContent = [
@@ -179,12 +90,13 @@ const Traceability = () => {
 
   const exportToExcel = () => {
     try {
-      const headers = ['Date', 'Utilisateur', 'Type', 'Description'];
+      const headers = ['Date', 'Utilisateur', 'Type', 'Description', 'Projet'];
       const rows = filteredActivities.map(activity => [
         new Date(activity.timestamp).toLocaleString('fr-FR'),
         activity.user,
         activity.type,
-        activity.description
+        activity.description,
+        activity.projectId || 'N/A'
       ]);
 
       const csvContent = [
@@ -234,6 +146,7 @@ const Traceability = () => {
                   <th>Utilisateur</th>
                   <th>Type</th>
                   <th>Description</th>
+                  <th>Projet</th>
                 </tr>
               </thead>
               <tbody>
@@ -243,6 +156,7 @@ const Traceability = () => {
                     <td>${activity.user}</td>
                     <td>${activity.type}</td>
                     <td>${activity.description}</td>
+                    <td>${activity.projectId || 'N/A'}</td>
                   </tr>
                 `).join('')}
               </tbody>

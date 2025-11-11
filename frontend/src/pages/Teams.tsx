@@ -13,13 +13,6 @@ import { useProjects } from "@/contexts/ProjectContext";
 import { toast } from "sonner";
 import { useUtilisateurs } from "@/hooks/useUtilisateurs";
 
-const FALLBACK_MEMBERS = [
-  { id: 'placeholder-1', name: 'Sophie Martin', role: 'Chef de Projet', email: 'sophie.martin@buildflow.fr', phone: '06 12 34 56 78' },
-  { id: 'placeholder-2', name: 'Jean Dupont', role: 'Ingénieur Structure', email: 'jean.dupont@buildflow.fr', phone: '06 23 45 67 89' },
-  { id: 'placeholder-3', name: 'Marc Leblanc', role: 'Chef de Projet', email: 'marc.leblanc@buildflow.fr', phone: '06 34 56 78 90' },
-  { id: 'placeholder-4', name: 'Claire Dubois', role: 'Chef de Projet', email: 'claire.dubois@buildflow.fr', phone: '06 45 67 89 01' },
-];
-
 const Teams = () => {
   const { projects } = useProjects();
   const { utilisateurs, loading, addUtilisateur } = useUtilisateurs();
@@ -27,10 +20,6 @@ const Teams = () => {
   const [formData, setFormData] = useState({ nom: "", email: "", mot_de_passe: "", role: "CHEF_DE_PROJET" as const });
 
   const normalizedMembers = useMemo(() => {
-    if (utilisateurs.length === 0) {
-      return FALLBACK_MEMBERS;
-    }
-
     const roleLabels: Record<string, string> = {
       ADMINISTRATEUR: "Administrateur",
       MAITRE_OUVRAGE: "Maître d'ouvrage",
@@ -59,13 +48,19 @@ const Teams = () => {
       .map(p => p.name);
   };
 
-  const departments = [
-    { name: "Direction", count: 3 },
-    { name: "Architecture", count: 5 },
-    { name: "Ingénierie", count: 12 },
-    { name: "Construction", count: 8 },
-    { name: "Qualité & Sécurité", count: 6 },
-  ];
+  // Calculer les départements depuis les rôles réels
+  const departments = useMemo(() => {
+    const deptCounts: Record<string, number> = {};
+    normalizedMembers.forEach(member => {
+      const dept = member.role.includes('Administrateur') ? 'Direction' :
+                   member.role.includes('Chef') ? 'Direction' :
+                   member.role.includes('Maître') ? 'Direction' :
+                   member.role.includes('Ingénieur') ? 'Ingénierie' :
+                   member.role.includes('Technique') ? 'Ingénierie' : 'Autres';
+      deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+    });
+    return Object.entries(deptCounts).map(([name, count]) => ({ name, count }));
+  }, [normalizedMembers]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -325,38 +320,46 @@ const Teams = () => {
           </div>
 
           {/* Organization Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Organigramme</CardTitle>
-              <CardDescription>Structure hiérarchique de l'organisation</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {/* Direction */}
-                <div className="text-center">
-                  <div className="inline-block p-4 bg-primary/10 rounded-lg border-2 border-primary">
-                    <p className="font-semibold">Direction Générale</p>
-                    <p className="text-sm text-muted-foreground">3 membres</p>
-                  </div>
-                </div>
-
-                {/* Departments */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {["Architecture", "Ingénierie", "Construction", "Qualité"].map((dept, idx) => (
-                    <div key={idx} className="text-center">
-                      <div className="h-12 border-l-2 border-primary mx-auto w-0 mb-4" />
-                      <div className="p-3 bg-muted rounded-lg border">
-                        <p className="font-medium text-sm">{dept}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {Math.floor(Math.random() * 10) + 3} membres
+          {departments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Organigramme</CardTitle>
+                <CardDescription>Structure hiérarchique de l'organisation</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Direction */}
+                  {departments.find(d => d.name === 'Direction') && (
+                    <div className="text-center">
+                      <div className="inline-block p-4 bg-primary/10 rounded-lg border-2 border-primary">
+                        <p className="font-semibold">Direction</p>
+                        <p className="text-sm text-muted-foreground">
+                          {departments.find(d => d.name === 'Direction')?.count || 0} membre{departments.find(d => d.name === 'Direction')?.count !== 1 ? 's' : ''}
                         </p>
                       </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Other Departments */}
+                  {departments.filter(d => d.name !== 'Direction').length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      {departments.filter(d => d.name !== 'Direction').map((dept) => (
+                        <div key={dept.name} className="text-center">
+                          <div className="h-12 border-l-2 border-primary mx-auto w-0 mb-4" />
+                          <div className="p-3 bg-muted rounded-lg border">
+                            <p className="font-medium text-sm">{dept.name}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {dept.count} membre{dept.count !== 1 ? 's' : ''}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
 
