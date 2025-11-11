@@ -10,8 +10,9 @@ import { Calendar, DollarSign, Users, FileText, TrendingUp, ArrowLeft, Edit, Plu
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useProjects } from "@/contexts/ProjectContext";
-import { useChantiers } from "@/hooks/useChantiers";
-import { useTaches } from "@/hooks/useTaches";
+import { useChantiers, Chantier } from "@/hooks/useChantiers";
+import { useLots, Lot } from "@/hooks/useLots";
+import { useTaches, Tache } from "@/hooks/useTaches";
 import { ChantierForm, ChantierFormData } from "@/components/chantiers/ChantierForm";
 import { LotForm, LotFormData } from "@/components/lots/LotForm";
 import { TacheForm, TacheFormData } from "@/components/taches/TacheForm";
@@ -27,7 +28,7 @@ const LotItem = ({
   onToggle, 
   onCreateTache 
 }: { 
-  lot: any;
+  lot: Lot;
   chantierId: string;
   isExpanded: boolean;
   onToggle: () => void;
@@ -132,10 +133,10 @@ const LotItem = ({
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    size="xs"
+                    size="sm"
                     disabled={tache.status === 'En cours' || tache.status?.toLowerCase() === 'en cours' || tache.status === 'Terminé' || tache.status?.toLowerCase() === 'terminé'}
                     onClick={async () => {
-                      await updateTache(tache.id, { status: 'En cours' } as any);
+                      await updateTache(tache.id, { status: 'En cours' } as Partial<Tache>);
                       await refreshTaches();
                     }}
                   >
@@ -143,10 +144,10 @@ const LotItem = ({
                   </Button>
                   <Button
                     variant="default"
-                    size="xs"
+                    size="sm"
                     disabled={tache.status === 'Terminé' || tache.status?.toLowerCase() === 'terminé'}
                     onClick={async () => {
-                      await updateTache(tache.id, { status: 'Terminé', progress: 100 } as any);
+                      await updateTache(tache.id, { status: 'Terminé', progress: 100 } as Partial<Tache>);
                       await refreshTaches();
                     }}
                   >
@@ -170,7 +171,7 @@ const ChantierItem = ({
   onCreateLot,
   refreshProjects 
 }: { 
-  chantier: any;
+  chantier: Chantier;
   isExpanded: boolean;
   onToggle: () => void;
   onCreateLot: (chantierId: string) => void;
@@ -374,16 +375,6 @@ const ProjectDetail = () => {
     setExpandedChantiers(newExpanded);
   };
 
-  const toggleLot = (lotId: string) => {
-    const newExpanded = new Set(expandedLots);
-    if (newExpanded.has(lotId)) {
-      newExpanded.delete(lotId);
-    } else {
-      newExpanded.add(lotId);
-    }
-    setExpandedLots(newExpanded);
-  };
-
   const handleCreateChantier = async (data: ChantierFormData) => {
     try {
       await addChantier({
@@ -408,39 +399,6 @@ const ProjectDetail = () => {
     }
   };
 
-  const handleCreateLot = async (chantierId: string, data: LotFormData) => {
-    try {
-      const payload: any = {
-        ...data,
-        chantier: chantierId,
-      };
-      await api.post('/lots/', payload);
-      setLotDialogOpen(null);
-      await refreshChantiers();
-      await refreshProjects();
-      toast.success('Lot créé avec succès');
-    } catch (error) {
-      console.error('Error creating lot:', error);
-      toast.error('Erreur lors de la création du lot');
-    }
-  };
-
-  const handleCreateTache = async (lotId: string, data: TacheFormData) => {
-    try {
-      const payload: any = {
-        ...data,
-        lot: lotId,
-      };
-      await api.post('/taches/', payload);
-      setTacheDialogOpen(null);
-      await refreshChantiers();
-      await refreshProjects();
-      toast.success('Tâche créée avec succès');
-    } catch (error) {
-      console.error('Error creating tache:', error);
-      toast.error('Erreur lors de la création de la tâche');
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
