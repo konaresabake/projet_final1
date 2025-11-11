@@ -15,10 +15,15 @@ const Traceability = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const location = useLocation();
 
-  // Rafraîchir les données quand on arrive sur la page
+  // Rafraîchir les données quand on arrive sur la page (une seule fois)
   useEffect(() => {
-    refreshProjects();
-  }, [location.pathname, refreshProjects]);
+    const timer = setTimeout(() => {
+      refreshProjects();
+    }, 100);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   // Utiliser uniquement les activités du contexte, pas de données mockées
   const filteredActivities = activities.filter(activity =>

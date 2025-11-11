@@ -18,11 +18,16 @@ const Taches = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const location = useLocation();
 
-  // Rafraîchir les données quand on arrive sur la page
+  // Rafraîchir les données quand on arrive sur la page (une seule fois)
   useEffect(() => {
-    refreshTaches();
-    refreshProjects();
-  }, [location.pathname, lotId, refreshTaches, refreshProjects]);
+    const timer = setTimeout(() => {
+      refreshTaches();
+      refreshProjects();
+    }, 100);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, lotId]);
 
   const handleCreateTache = async (data: TacheFormData) => {
     await addTache(data);

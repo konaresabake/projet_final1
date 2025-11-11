@@ -14,10 +14,15 @@ const Dashboard = () => {
   const { projects, activities, refreshProjects } = useProjects();
   const location = useLocation();
 
-  // Rafraîchir les données quand on arrive sur la page
+  // Rafraîchir les données quand on arrive sur la page (une seule fois)
   useEffect(() => {
-    refreshProjects();
-  }, [location.pathname, refreshProjects]);
+    const timer = setTimeout(() => {
+      refreshProjects();
+    }, 100); // Petit délai pour éviter les requêtes multiples
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]); // Retirer la dépendance de fonction pour éviter les boucles
 
   const stats = useMemo(() => {
     const activeProjects = projects.filter(p => p.status === 'En cours').length;

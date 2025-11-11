@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo, useState, ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, useRef, ReactNode } from 'react';
 import { Project, Comment, Activity } from '@/types/project';
 import { useProjets, Projet as ApiProjet } from '@/hooks/useProjets';
 import { useChantiers, Chantier } from '@/hooks/useChantiers';
@@ -304,12 +304,30 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [deleteProjet, refreshProjets, refreshChantiers, refreshBudgets, projects, addActivity]);
 
+  // Utiliser un ref pour éviter les rafraîchissements multiples simultanés
+  const isRefreshingRef = useRef(false);
+  const lastRefreshRef = useRef<number>(0);
+  const REFRESH_COOLDOWN = 2000; // 2 secondes entre les rafraîchissements
+
   const refreshProjects = useCallback(async () => {
-    await Promise.all([
-      refreshProjets(),
-      refreshChantiers(),
-      refreshBudgets(),
-    ]);
+    const now = Date.now();
+    // Si on rafraîchit déjà ou si on vient de rafraîchir, ignorer
+    if (isRefreshingRef.current || (now - lastRefreshRef.current < REFRESH_COOLDOWN)) {
+      return;
+    }
+
+    isRefreshingRef.current = true;
+    lastRefreshRef.current = now;
+
+    try {
+      await Promise.all([
+        refreshProjets(),
+        refreshChantiers(),
+        refreshBudgets(),
+      ]);
+    } finally {
+      isRefreshingRef.current = false;
+    }
   }, [refreshProjets, refreshChantiers, refreshBudgets]);
 
   return (

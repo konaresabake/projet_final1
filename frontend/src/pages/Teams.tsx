@@ -19,11 +19,16 @@ const Teams = () => {
   const { utilisateurs, loading, addUtilisateur, refreshUtilisateurs } = useUtilisateurs();
   const location = useLocation();
 
-  // Rafraîchir les données quand on arrive sur la page
+  // Rafraîchir les données quand on arrive sur la page (une seule fois)
   useEffect(() => {
-    refreshProjects();
-    refreshUtilisateurs();
-  }, [location.pathname, refreshProjects, refreshUtilisateurs]);
+    const timer = setTimeout(() => {
+      refreshProjects();
+      refreshUtilisateurs();
+    }, 100);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({ nom: "", email: "", mot_de_passe: "", role: "CHEF_DE_PROJET" as const });
 

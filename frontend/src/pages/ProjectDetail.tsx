@@ -306,11 +306,16 @@ const ProjectDetail = () => {
   // États pour l'affichage hiérarchique
   const [expandedChantiers, setExpandedChantiers] = useState<Set<string>>(new Set());
 
-  // Rafraîchir les données quand on arrive sur la page ou quand l'ID change
+  // Rafraîchir les données quand on arrive sur la page ou quand l'ID change (une seule fois)
   useEffect(() => {
-    refreshProjects();
-    refreshChantiers();
-  }, [id, refreshProjects, refreshChantiers]);
+    const timer = setTimeout(() => {
+      refreshProjects();
+      refreshChantiers();
+    }, 100);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   if (!project) {
     return (

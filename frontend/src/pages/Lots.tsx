@@ -19,11 +19,16 @@ const Lots = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const location = useLocation();
 
-  // Rafraîchir les données quand on arrive sur la page
+  // Rafraîchir les données quand on arrive sur la page (une seule fois)
   useEffect(() => {
-    refreshLots();
-    refreshProjects();
-  }, [location.pathname, chantierId, refreshLots, refreshProjects]);
+    const timer = setTimeout(() => {
+      refreshLots();
+      refreshProjects();
+    }, 100);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, chantierId]);
 
   const handleCreateLot = async (data: LotFormData) => {
     await addLot(data);

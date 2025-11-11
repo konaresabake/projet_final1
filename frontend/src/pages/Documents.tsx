@@ -22,10 +22,15 @@ const Documents = () => {
   const { projects, refreshProjects, addActivity } = useProjects();
   const location = useLocation();
 
-  // Rafraîchir les données quand on arrive sur la page
+  // Rafraîchir les données quand on arrive sur la page (une seule fois)
   useEffect(() => {
-    refreshProjects();
-  }, [location.pathname, refreshProjects]);
+    const timer = setTimeout(() => {
+      refreshProjects();
+    }, 100);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
   const [searchTerm, setSearchTerm] = useState("");
   const [uploadedDocuments, setUploadedDocuments] = useState<LocalDocument[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);

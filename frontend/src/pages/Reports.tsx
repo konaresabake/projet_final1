@@ -26,14 +26,19 @@ const Reports = () => {
   const { alertes, loading: alertesLoading, refreshAlertes } = useAlertes();
   const location = useLocation();
 
-  // Rafraîchir les données quand on arrive sur la page
+  // Rafraîchir les données quand on arrive sur la page (une seule fois)
   useEffect(() => {
-    refreshProjects();
-    refreshProjets();
-    refreshBudgets();
-    refreshRapports();
-    refreshAlertes();
-  }, [location.pathname, refreshProjects, refreshProjets, refreshBudgets, refreshRapports, refreshAlertes]);
+    const timer = setTimeout(() => {
+      refreshProjects();
+      refreshProjets();
+      refreshBudgets();
+      refreshRapports();
+      refreshAlertes();
+    }, 100); // Petit délai pour éviter les requêtes multiples
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]); // Retirer les dépendances de fonctions pour éviter les boucles
 
   const normalizedProjects = useMemo(() => {
     if (apiProjets.length > 0) {

@@ -17,11 +17,16 @@ const Projets = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const location = useLocation();
 
-  // Rafraîchir les données quand on arrive sur la page
+  // Rafraîchir les données quand on arrive sur la page (une seule fois)
   useEffect(() => {
-    refreshProjets();
-    refreshProjects();
-  }, [location.pathname, refreshProjets, refreshProjects]);
+    const timer = setTimeout(() => {
+      refreshProjets();
+      refreshProjects();
+    }, 100);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const handleCreateProjet = async (data: ProjetFormData) => {
     await addProjet(data);
