@@ -35,11 +35,21 @@ export const useBudgets = (projetId?: string) => {
       }
     } catch (error: unknown) {
       console.error('Error fetching budgets:', error);
-      const errorMessage = (error as { response?: { data?: { error?: string; detail?: string }; message?: string } })?.response?.data?.error || 
-        (error as { response?: { data?: { error?: string; detail?: string }; message?: string } })?.response?.data?.detail ||
-        (error as { message?: string })?.message || 
-        'Erreur lors du chargement des budgets';
-      toast.error(errorMessage);
+      
+      // Ne pas afficher de toast pour les erreurs de connexion réseau (trop agressif)
+      const errorObj = error as { message?: string; response?: { status?: number; data?: { error?: string; detail?: string } } };
+      const isNetworkError = errorObj?.message?.includes('connexion') || 
+                            errorObj?.response?.status === 0 ||
+                            errorObj?.message === 'Failed to fetch';
+      
+      if (!isNetworkError) {
+        const errorMessage = errorObj?.response?.data?.error || 
+          errorObj?.response?.data?.detail ||
+          errorObj?.message || 
+          'Erreur lors du chargement des budgets';
+        toast.error(errorMessage);
+      }
+      
       setBudgets([]); // Initialiser avec un tableau vide en cas d'erreur
     } finally {
       setLoading(false);

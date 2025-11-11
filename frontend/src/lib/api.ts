@@ -155,6 +155,27 @@ async function apiRequest<T>(
       throw new Error('Réponse invalide du serveur');
     }
   } catch (error) {
+    // Détecter les erreurs de connexion réseau
+    const isNetworkError = error instanceof TypeError && 
+      (error.message === 'Failed to fetch' || 
+       error.message.includes('ERR_CONNECTION_CLOSED') ||
+       error.message.includes('NetworkError'));
+    
+    if (isNetworkError) {
+      console.warn('Erreur de connexion réseau - le backend n\'est peut-être pas accessible:', url);
+      // Pour les requêtes GET, retourner un tableau vide au lieu de lancer une erreur
+      if (!options.method || options.method === 'GET') {
+        return [] as T;
+      }
+      // Pour les autres méthodes, créer une erreur avec un message clair
+      const networkError = new Error('Impossible de se connecter au serveur. Vérifiez votre connexion internet.') as ApiError;
+      networkError.response = { 
+        data: { error: 'Erreur de connexion réseau' }, 
+        status: 0 
+      };
+      throw networkError;
+    }
+    
     console.error('API request failed:', error);
     throw error;
   }

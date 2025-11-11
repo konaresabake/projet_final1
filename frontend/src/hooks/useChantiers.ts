@@ -45,11 +45,20 @@ export const useChantiers = (projetId?: string) => {
       }
     } catch (error: any) {
       console.error('Error fetching chantiers:', error);
-      const errorMessage = error?.response?.data?.error || 
-        error?.response?.data?.detail || 
-        error?.message || 
-        'Erreur lors du chargement des chantiers';
-      toast.error(errorMessage);
+      
+      // Ne pas afficher de toast pour les erreurs de connexion réseau (trop agressif)
+      const isNetworkError = error?.message?.includes('connexion') || 
+                            error?.response?.status === 0 ||
+                            error?.message === 'Failed to fetch';
+      
+      if (!isNetworkError) {
+        const errorMessage = error?.response?.data?.error || 
+          error?.response?.data?.detail || 
+          error?.message || 
+          'Erreur lors du chargement des chantiers';
+        toast.error(errorMessage);
+      }
+      
       setChantiers([]); // Initialiser avec un tableau vide en cas d'erreur
     } finally {
       setLoading(false);
