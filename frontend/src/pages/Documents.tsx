@@ -8,24 +8,66 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useProjects } from "@/contexts/ProjectContext";
 import { toast } from "sonner";
+import type { Document } from "@/types/project";
+
+interface LocalDocument extends Document {
+  projectName?: string;
+  category?: string;
+  file?: File;
+  date?: string;
+}
 
 const Documents = () => {
   const { projects } = useProjects();
   const [searchTerm, setSearchTerm] = useState("");
+  const [uploadedDocuments, setUploadedDocuments] = useState<LocalDocument[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadZoneRef = useRef<HTMLDivElement>(null);
 
-  // Aggregate all documents from all projects
-  const allDocuments = projects.flatMap(project => 
-    project.documents.map(doc => ({
-      ...doc,
-      projectName: project.name,
-      category: doc.type?.includes('Plan') ? 'Plans' : 
-                doc.type?.includes('Contrat') ? 'Contrats' :
-                doc.type?.includes('Rapport') ? 'Rapports' :
-                doc.type?.includes('Photo') ? 'Photos' : 'Autres'
-    }))
-  );
+  // Fonction pour convertir un File en Document
+  const fileToDocument = (file: File): LocalDocument => {
+    const fileExtension = file.name.split('.').pop()?.toUpperCase() || '';
+    const fileType = fileExtension === 'PDF' ? 'PDF' :
+                     fileExtension === 'DOCX' || fileExtension === 'DOC' ? 'DOCX' :
+                     fileExtension === 'XLSX' || fileExtension === 'XLS' ? 'XLSX' :
+                     fileExtension === 'ZIP' ? 'ZIP' :
+                     fileExtension === 'JPG' || fileExtension === 'JPEG' || fileExtension === 'PNG' ? 'Image' :
+                     fileExtension;
+    
+    const sizeInMB = (file.size / 1024 / 1024).toFixed(2);
+    const category = fileType.includes('Plan') ? 'Plans' : 
+                    fileType.includes('Contrat') ? 'Contrats' :
+                    fileType.includes('Rapport') ? 'Rapports' :
+                    fileType.includes('Photo') || fileType === 'Image' ? 'Photos' : 
+                    fileType.includes('Finance') ? 'Finances' : 'Autres';
+
+    return {
+      id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: file.name,
+      type: fileType,
+      size: `${sizeInMB} MB`,
+      uploadedBy: 'Vous', // Vous pouvez récupérer le nom de l'utilisateur connecté
+      uploadedAt: new Date().toISOString(),
+      date: new Date().toLocaleDateString('fr-FR'),
+      category,
+      file, // Garder la référence au fichier pour le téléchargement
+    };
+  };
+
+  // Aggregate all documents from all projects + documents téléversés localement
+  const allDocuments = [
+    ...projects.flatMap(project => 
+      project.documents.map(doc => ({
+        ...doc,
+        projectName: project.name,
+        category: doc.type?.includes('Plan') ? 'Plans' : 
+                  doc.type?.includes('Contrat') ? 'Contrats' :
+                  doc.type?.includes('Rapport') ? 'Rapports' :
+                  doc.type?.includes('Photo') ? 'Photos' : 'Autres'
+      }))
+    ),
+    ...uploadedDocuments
+  ];
 
   const documents = allDocuments;
 
@@ -41,7 +83,7 @@ const Documents = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
@@ -49,6 +91,8 @@ const Documents = () => {
     const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
                          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
                          'image/jpeg', 'image/png', 'application/zip'];
+
+    const newDocuments: LocalDocument[] = [];
 
     Array.from(files).forEach((file) => {
       if (file.size > maxSize) {
@@ -61,10 +105,24 @@ const Documents = () => {
         return;
       }
 
-      // Ici vous pouvez envoyer le fichier à votre API
-      // Pour l'instant, on simule juste le téléversement
-      toast.success(`Fichier ${file.name} téléversé avec succès (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+      // Convertir le fichier en document et l'ajouter à la liste
+      const document = fileToDocument(file);
+      newDocuments.push(document);
     });
+
+    if (newDocuments.length > 0) {
+      // Ajouter les documents à l'état local pour qu'ils s'affichent immédiatement
+      setUploadedDocuments(prev => [...newDocuments, ...prev]);
+      toast.success(`${newDocuments.length} fichier${newDocuments.length > 1 ? 's' : ''} téléversé${newDocuments.length > 1 ? 's' : ''} avec succès`);
+      
+      // TODO: Ici vous pouvez envoyer les fichiers à votre API
+      // Exemple avec FormData:
+      // const formData = new FormData();
+      // formData.append('file', file);
+      // await api.post('/documents/', formData, {
+      //   headers: { 'Content-Type': 'multipart/form-data' }
+      // });
+    }
 
     // Réinitialiser l'input
     if (fileInputRef.current) {
@@ -88,7 +146,7 @@ const Documents = () => {
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (uploadZoneRef.current) {
@@ -103,6 +161,8 @@ const Documents = () => {
                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
                            'image/jpeg', 'image/png', 'application/zip'];
 
+      const newDocuments: LocalDocument[] = [];
+
       Array.from(files).forEach((file) => {
         if (file.size > maxSize) {
           toast.error(`Le fichier ${file.name} dépasse la taille maximale de 50MB`);
@@ -114,9 +174,18 @@ const Documents = () => {
           return;
         }
 
-        // Ici vous pouvez envoyer le fichier à votre API
-        toast.success(`Fichier ${file.name} téléversé avec succès (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+        // Convertir le fichier en document et l'ajouter à la liste
+        const document = fileToDocument(file);
+        newDocuments.push(document);
       });
+
+      if (newDocuments.length > 0) {
+        // Ajouter les documents à l'état local pour qu'ils s'affichent immédiatement
+        setUploadedDocuments(prev => [...newDocuments, ...prev]);
+        toast.success(`${newDocuments.length} fichier${newDocuments.length > 1 ? 's' : ''} téléversé${newDocuments.length > 1 ? 's' : ''} avec succès`);
+        
+        // TODO: Ici vous pouvez envoyer les fichiers à votre API
+      }
     }
   };
 
@@ -125,19 +194,36 @@ const Documents = () => {
     // Ici vous pouvez implémenter l'ouverture du fichier
   };
 
-  const handleDownload = (docName: string) => {
-    // Créer un fichier de démonstration
-    const content = `Contenu du document: ${docName}\n\nCeci est un exemple de téléchargement.`;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${docName}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success(`Téléchargement de ${docName} démarré`);
+  const handleDownload = (doc: LocalDocument) => {
+    // Si le document a un fichier local, le télécharger directement
+    if (doc.file) {
+      const url = URL.createObjectURL(doc.file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(`Téléchargement de ${doc.name} démarré`);
+    } else if (doc.url) {
+      // Si le document a une URL, ouvrir dans un nouvel onglet
+      window.open(doc.url, '_blank');
+      toast.success(`Ouverture de ${doc.name}`);
+    } else {
+      // Sinon, créer un fichier de démonstration
+      const content = `Contenu du document: ${doc.name}\n\nCeci est un exemple de téléchargement.`;
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${doc.name}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(`Téléchargement de ${doc.name} démarré`);
+    }
   };
 
   const getFileIcon = (type: string) => {
@@ -240,9 +326,9 @@ const Documents = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {filteredDocuments.map((doc, idx) => (
+                {filteredDocuments.map((doc) => (
                   <div
-                    key={idx}
+                    key={doc.id}
                     className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors group"
                   >
                     <div className="flex items-center gap-4 flex-1">
@@ -278,7 +364,7 @@ const Documents = () => {
                         size="sm" 
                         onClick={() => {
                           try {
-                            handleDownload(doc.name);
+                            handleDownload(doc);
                           } catch (error) {
                             console.error('Error downloading document:', error);
                           }
