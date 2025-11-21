@@ -12,6 +12,25 @@ if (import.meta.env.DEV) {
     mode: import.meta.env.MODE,
     envVar: import.meta.env.VITE_API_BASE_URL || 'non défini'
   });
+  
+  // Vérifier si le backend est accessible au démarrage (ne pas bloquer si échec)
+  setTimeout(() => {
+    fetch(`${API_BASE_URL.replace('/api', '')}/api/`, { 
+      method: 'HEAD',
+      signal: AbortSignal.timeout(3000) // Timeout après 3 secondes
+    }).then(response => {
+      if (response.ok || response.status === 404) {
+        console.log('[API] ✅ Backend accessible sur', API_BASE_URL);
+      }
+    }).catch((err) => {
+      if (err.name !== 'AbortError') {
+        console.warn('[API] ⚠️ Backend non accessible. Pour démarrer le backend:', '\n',
+          '  cd backend\n',
+          '  python manage.py runserver 0.0.0.0:8000\n',
+          'URL attendue:', API_BASE_URL);
+      }
+    });
+  }, 1000); // Attendre 1 seconde avant de vérifier
 }
 
 // Types pour les erreurs API
@@ -50,12 +69,22 @@ async function apiRequest<T>(
   };
 
   try {
-    // Log pour le débogage
-    if (import.meta.env.DEV) {
+    // Log pour le débogage (uniquement pour les requêtes non-GET ou en mode verbose)
+    if (import.meta.env.DEV && (options.method && options.method !== 'GET')) {
       console.log(`[API] ${options.method || 'GET'} ${url}`);
     }
     
     const response = await fetch(url, config);
+    
+    // Gérer les erreurs 404 pour les requêtes GET AVANT de lire le body
+    // Cela évite que le navigateur affiche l'erreur dans la console
+    if (response.status === 404 && (options.method === 'GET' || !options.method)) {
+      // Ne pas lire le body pour les 404 GET, retourner directement un tableau vide
+      if (import.meta.env.DEV) {
+        console.debug(`[API] 404 ignoré pour GET: ${url} - Retour d'un tableau vide`);
+      }
+      return [] as T;
+    }
     
     // Lire le texte de la réponse une seule fois (on ne peut le faire qu'une fois)
     let responseText: string | null = null;
@@ -63,14 +92,6 @@ async function apiRequest<T>(
       responseText = await response.text();
     } catch (e) {
       responseText = '';
-    }
-    
-    // Gérer les erreurs 404 pour les requêtes GET - retourner un tableau vide au lieu de jeter une erreur
-    if (response.status === 404 && (options.method === 'GET' || !options.method)) {
-      if (import.meta.env.DEV) {
-        console.warn(`[API] 404 - Endpoint non trouvé: ${url}. Retour d'un tableau vide.`);
-      }
-      return [] as T;
     }
     
     // Si le token est expiré (401), essayer de le rafraîchir
@@ -121,11 +142,12 @@ async function apiRequest<T>(
     }
     
     if (!response.ok) {
-      // Pour les 404 sur GET, on a déjà géré le cas ci-dessus
+      // Pour les 404 sur GET, on a déjà géré le cas ci-dessus avant la lecture du body
       if (response.status === 404 && (options.method === 'GET' || !options.method)) {
         return [] as T;
       }
       
+      // Pour les autres erreurs, logger seulement si ce n'est pas un 404 GET
       let errorData: ApiErrorResponse = {};
       try {
         errorData = responseText ? JSON.parse(responseText) : {};
@@ -136,14 +158,17 @@ async function apiRequest<T>(
       const error = new Error(errorData.error || errorData.detail || `HTTP error! status: ${response.status}`) as ApiError;
       error.response = { data: errorData, status: response.status };
       
-      console.error('[API Error]:', {
-        url,
-        method: options.method || 'GET',
-        status: response.status,
-        statusText: response.statusText,
-        error: errorData,
-        responseText: responseText?.substring(0, 200) // Premiers 200 caractères pour le debug
-      });
+      // Ne logger les erreurs que si ce n'est pas un 404 GET (déjà géré silencieusement)
+      if (!(response.status === 404 && (options.method === 'GET' || !options.method))) {
+        console.error('[API Error]:', {
+          url,
+          method: options.method || 'GET',
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+          responseText: responseText?.substring(0, 200)
+        });
+      }
       
       throw error;
     }
