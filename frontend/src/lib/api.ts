@@ -1,5 +1,9 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://yoonu-tabax-backend.onrender.com/api';
+// Default to localhost for development, use environment variable or remote URL for production
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (import.meta.env.DEV 
+    ? 'http://localhost:8000/api' 
+    : 'https://yoonu-tabax-backend.onrender.com/api');
 
 // Types pour les erreurs API
 interface ApiErrorResponse {
