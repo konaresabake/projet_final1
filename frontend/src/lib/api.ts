@@ -5,6 +5,15 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
     ? 'http://localhost:8000/api' 
     : 'https://yoonu-tabax-backend.onrender.com/api');
 
+// Log de l'URL API utilisée en mode développement
+if (import.meta.env.DEV) {
+  console.log('[API] Configuration:', {
+    API_BASE_URL,
+    mode: import.meta.env.MODE,
+    envVar: import.meta.env.VITE_API_BASE_URL || 'non défini'
+  });
+}
+
 // Types pour les erreurs API
 interface ApiErrorResponse {
   error?: string;
@@ -41,6 +50,11 @@ async function apiRequest<T>(
   };
 
   try {
+    // Log pour le débogage
+    if (import.meta.env.DEV) {
+      console.log(`[API] ${options.method || 'GET'} ${url}`);
+    }
+    
     const response = await fetch(url, config);
     
     // Lire le texte de la réponse une seule fois (on ne peut le faire qu'une fois)
@@ -49,6 +63,14 @@ async function apiRequest<T>(
       responseText = await response.text();
     } catch (e) {
       responseText = '';
+    }
+    
+    // Gérer les erreurs 404 pour les requêtes GET - retourner un tableau vide au lieu de jeter une erreur
+    if (response.status === 404 && (options.method === 'GET' || !options.method)) {
+      if (import.meta.env.DEV) {
+        console.warn(`[API] 404 - Endpoint non trouvé: ${url}. Retour d'un tableau vide.`);
+      }
+      return [] as T;
     }
     
     // Si le token est expiré (401), essayer de le rafraîchir
@@ -99,19 +121,30 @@ async function apiRequest<T>(
     }
     
     if (!response.ok) {
+      // Pour les 404 sur GET, on a déjà géré le cas ci-dessus
+      if (response.status === 404 && (options.method === 'GET' || !options.method)) {
+        return [] as T;
+      }
+      
       let errorData: ApiErrorResponse = {};
       try {
         errorData = responseText ? JSON.parse(responseText) : {};
       } catch (e) {
         errorData = { error: `HTTP error! status: ${response.status}` };
       }
+      
       const error = new Error(errorData.error || errorData.detail || `HTTP error! status: ${response.status}`) as ApiError;
       error.response = { data: errorData, status: response.status };
-      console.error('API Error:', {
+      
+      console.error('[API Error]:', {
         url,
+        method: options.method || 'GET',
         status: response.status,
-        error: errorData
+        statusText: response.statusText,
+        error: errorData,
+        responseText: responseText?.substring(0, 200) // Premiers 200 caractères pour le debug
       });
+      
       throw error;
     }
     
@@ -166,13 +199,22 @@ async function apiRequest<T>(
        error.message.includes('NetworkError'));
     
     if (isNetworkError) {
-      console.warn('Erreur de connexion réseau - le backend n\'est peut-être pas accessible:', url);
+      const backendUrl = API_BASE_URL.replace('/api', '');
+      console.warn('[API] Erreur de connexion réseau:', {
+        url,
+        backendBase: backendUrl,
+        message: 'Le backend n\'est peut-être pas accessible. Vérifiez qu\'il est démarré sur',
+        expectedUrl: backendUrl
+      });
+      
       // Pour les requêtes GET, retourner un tableau vide au lieu de lancer une erreur
       if (!options.method || options.method === 'GET') {
+        console.warn('[API] Retour d\'un tableau vide pour la requête GET échouée');
         return [] as T;
       }
+      
       // Pour les autres méthodes, créer une erreur avec un message clair
-      const networkError = new Error('Impossible de se connecter au serveur. Vérifiez votre connexion internet.') as ApiError;
+      const networkError = new Error(`Impossible de se connecter au serveur (${backendUrl}). Vérifiez que le backend est démarré.`) as ApiError;
       networkError.response = { 
         data: { error: 'Erreur de connexion réseau' }, 
         status: 0 
