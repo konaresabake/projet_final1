@@ -54,7 +54,11 @@ const Admin = () => {
       navigate('/dashboard');
       return;
     }
-    fetchUsers();
+    // Attendre un peu avant de charger les utilisateurs pour éviter les requêtes multiples
+    const timer = setTimeout(() => {
+      fetchUsers();
+    }, 100);
+    return () => clearTimeout(timer);
   }, [user, isAdmin, navigate]);
 
   const fetchUsers = async () => {
@@ -62,14 +66,25 @@ const Admin = () => {
       setLoading(true);
       // Récupérer tous les utilisateurs
       const users = await api.get<PendingUser[]>('/utilisateurs/');
-      setAllUsers(users);
+      
+      // S'assurer que users est un tableau
+      const usersArray = Array.isArray(users) ? users : [];
+      setAllUsers(usersArray);
       
       // Filtrer les utilisateurs en attente
-      const pending = users.filter(u => !u.is_approved && u.role !== 'ADMINISTRATEUR');
+      const pending = usersArray.filter(u => !u.is_approved && u.role !== 'ADMINISTRATEUR');
       setPendingUsers(pending);
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast.error('Erreur lors du chargement des utilisateurs');
+      // Ne pas afficher de toast si c'est une erreur 404 ou de connexion réseau
+      // car elles sont déjà gérées silencieusement dans api.ts
+      const apiError = error as { response?: { status?: number }; message?: string };
+      if (apiError?.response?.status !== 404 && apiError?.message !== 'Failed to fetch') {
+        toast.error('Erreur lors du chargement des utilisateurs');
+      }
+      // Initialiser avec des tableaux vides en cas d'erreur
+      setAllUsers([]);
+      setPendingUsers([]);
     } finally {
       setLoading(false);
     }
@@ -79,10 +94,12 @@ const Admin = () => {
     try {
       await api.patch(`/utilisateurs/${userId}/approve/`, {});
       toast.success('Utilisateur approuvé avec succès');
-      fetchUsers();
+      await fetchUsers();
     } catch (error) {
       console.error('Error approving user:', error);
-      toast.error('Erreur lors de l\'approbation');
+      const apiError = error as { response?: { data?: { error?: string; detail?: string } } };
+      const errorMessage = apiError?.response?.data?.error || apiError?.response?.data?.detail || 'Erreur lors de l\'approbation';
+      toast.error(errorMessage);
     }
   };
 
@@ -90,10 +107,12 @@ const Admin = () => {
     try {
       await api.patch(`/utilisateurs/${userId}/reject/`, {});
       toast.success('Utilisateur rejeté');
-      fetchUsers();
+      await fetchUsers();
     } catch (error) {
       console.error('Error rejecting user:', error);
-      toast.error('Erreur lors du rejet');
+      const apiError = error as { response?: { data?: { error?: string; detail?: string } } };
+      const errorMessage = apiError?.response?.data?.error || apiError?.response?.data?.detail || 'Erreur lors du rejet';
+      toast.error(errorMessage);
     }
   };
 
