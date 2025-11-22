@@ -47,6 +47,8 @@ interface ApiError extends Error {
   };
 }
 
+// Les erreurs 404 sont interceptées dans main.tsx pour éviter les messages dans la console
+
 // Generic API request handler
 async function apiRequest<T>(
   endpoint: string,
@@ -80,9 +82,7 @@ async function apiRequest<T>(
     // Cela évite que le navigateur affiche l'erreur dans la console
     if (response.status === 404 && (options.method === 'GET' || !options.method)) {
       // Ne pas lire le body pour les 404 GET, retourner directement un tableau vide
-      if (import.meta.env.DEV) {
-        console.debug(`[API] 404 ignoré pour GET: ${url} - Retour d'un tableau vide`);
-      }
+      // Ne pas logger non plus pour éviter les messages dans la console
       return [] as T;
     }
     
