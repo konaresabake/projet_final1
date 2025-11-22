@@ -31,10 +31,20 @@ export const useRessources = (fournisseurId?: string) => {
       setLoading(true);
       const endpoint = fournisseurId ? `/ressources/?fournisseur_id=${fournisseurId}` : '/ressources/';
       const data = await api.get<RessourceBase[]>(endpoint);
-      setRessources(data);
+      // S'assurer que data est un tableau
+      setRessources(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching ressources:', error);
-      toast.error('Erreur lors du chargement des ressources');
+      // Ne pas afficher de toast pour les erreurs 404 ou de connexion réseau
+      const apiError = error as { response?: { status?: number }; message?: string };
+      const isNetworkError = apiError?.response?.status === 404 || 
+                            apiError?.response?.status === 0 ||
+                            apiError?.message === 'Failed to fetch';
+      
+      if (!isNetworkError) {
+        toast.error('Erreur lors du chargement des ressources');
+      }
+      setRessources([]); // Toujours initialiser avec un tableau vide en cas d'erreur
     } finally {
       setLoading(false);
     }

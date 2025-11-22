@@ -25,10 +25,20 @@ export const useLots = (chantierId?: string) => {
       setLoading(true);
       const endpoint = chantierId ? `/lots/?chantier_id=${chantierId}` : '/lots/';
       const data = await api.get<Lot[]>(endpoint);
-      setLots(data);
+      // S'assurer que data est un tableau
+      setLots(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching lots:', error);
-      toast.error('Erreur lors du chargement des lots');
+      // Ne pas afficher de toast pour les erreurs 404 ou de connexion réseau
+      const apiError = error as { response?: { status?: number }; message?: string };
+      const isNetworkError = apiError?.response?.status === 404 || 
+                            apiError?.response?.status === 0 ||
+                            apiError?.message === 'Failed to fetch';
+      
+      if (!isNetworkError) {
+        toast.error('Erreur lors du chargement des lots');
+      }
+      setLots([]); // Toujours initialiser avec un tableau vide en cas d'erreur
     } finally {
       setLoading(false);
     }

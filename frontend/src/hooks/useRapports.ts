@@ -21,10 +21,20 @@ export const useRapports = (projetId?: string) => {
       setLoading(true);
       const endpoint = projetId ? `/rapports/?projet_id=${projetId}` : '/rapports/';
       const data = await api.get<Rapport[]>(endpoint);
-      setRapports(data);
+      // S'assurer que data est un tableau
+      setRapports(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching rapports:', error);
-      toast.error('Erreur lors du chargement des rapports');
+      // Ne pas afficher de toast pour les erreurs 404 ou de connexion réseau
+      const apiError = error as { response?: { status?: number }; message?: string };
+      const isNetworkError = apiError?.response?.status === 404 || 
+                            apiError?.response?.status === 0 ||
+                            apiError?.message === 'Failed to fetch';
+      
+      if (!isNetworkError) {
+        toast.error('Erreur lors du chargement des rapports');
+      }
+      setRapports([]); // Toujours initialiser avec un tableau vide en cas d'erreur
     } finally {
       setLoading(false);
     }

@@ -18,10 +18,20 @@ export const useFournisseurs = () => {
     try {
       setLoading(true);
       const data = await api.get<Fournisseur[]>('/fournisseurs/');
-      setFournisseurs(data);
+      // S'assurer que data est un tableau
+      setFournisseurs(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching fournisseurs:', error);
-      toast.error('Erreur lors du chargement des fournisseurs');
+      // Ne pas afficher de toast pour les erreurs 404 ou de connexion réseau
+      const apiError = error as { response?: { status?: number }; message?: string };
+      const isNetworkError = apiError?.response?.status === 404 || 
+                            apiError?.response?.status === 0 ||
+                            apiError?.message === 'Failed to fetch';
+      
+      if (!isNetworkError) {
+        toast.error('Erreur lors du chargement des fournisseurs');
+      }
+      setFournisseurs([]); // Toujours initialiser avec un tableau vide en cas d'erreur
     } finally {
       setLoading(false);
     }

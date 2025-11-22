@@ -24,11 +24,21 @@ export const useAlertes = (projetId?: string) => {
       setLoading(true);
       const endpoint = projetId ? `/alertes/?projet_id=${projetId}` : '/alertes/';
       const data = await api.get<Alerte[]>(endpoint);
-      setAlertes(data);
-    } catch (error: any) {
+      // S'assurer que data est un tableau
+      setAlertes(Array.isArray(data) ? data : []);
+    } catch (error) {
       console.error('Error fetching alertes:', error);
-      const errorMessage = error?.response?.data?.error || 'Erreur lors du chargement des alertes';
-      toast.error(errorMessage);
+      // Ne pas afficher de toast pour les erreurs 404 ou de connexion réseau
+      const apiError = error as { response?: { status?: number; data?: { error?: string } }; message?: string };
+      const isNetworkError = apiError?.response?.status === 404 || 
+                            apiError?.response?.status === 0 ||
+                            apiError?.message === 'Failed to fetch';
+      
+      if (!isNetworkError) {
+        const errorMessage = apiError?.response?.data?.error || 'Erreur lors du chargement des alertes';
+        toast.error(errorMessage);
+      }
+      setAlertes([]); // Toujours initialiser avec un tableau vide en cas d'erreur
     } finally {
       setLoading(false);
     }
