@@ -47,3 +47,5 @@ Une fois le backend démarré, les requêtes API fonctionneront et il n'y aura p
 
 Ces messages sont informatifs et n'indiquent pas un problème avec votre code. L'application est conçue pour fonctionner même si le backend n'est pas accessible.
 
+
+

@@ -142,3 +142,5 @@ python manage.py runserver 0.0.0.0:8000
 
 Une fois le backend démarré, toutes les requêtes API fonctionneront et il n'y aura plus de 404.
 
+
+

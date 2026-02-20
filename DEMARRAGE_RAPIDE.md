@@ -100,3 +100,5 @@ L'application continue de fonctionner car ces erreurs sont maintenant gérées a
 Elles retournent simplement un tableau vide au lieu de planter l'application.
 
 
+
+
